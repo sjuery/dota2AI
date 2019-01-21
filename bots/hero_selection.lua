@@ -1,4 +1,3 @@
---recording all dota2 heroes
 hero_pool = {
 	"npc_dota_hero_abaddon",
 	"npc_dota_hero_abyssal_underlord",
@@ -125,4 +124,20 @@ function Think()
 	elseif GetHeroPickState() == HEROPICK_STATE_CM_PICK then
 		SelectsHero();
 	end
+end
+
+function PickCaptain()
+	print("Gotta Pick Captain")
+end
+
+function BansHero()
+	print("Gotta Ban Hero")
+end
+
+function PicksHero()
+	print("Gotta Pick Hero")
+end
+
+function SelectsHero()
+	print("Gotta Select Hero")
 end
