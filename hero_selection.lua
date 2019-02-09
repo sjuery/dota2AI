@@ -154,15 +154,16 @@ function PicksHero()
 end
 
 function SelectsHero()
--- 	players = GetTeamPlayers(GetTeam())
--- 	botPlayers = {};
+	-- print("I am being called")
 
--- 	for _,id in pairs(players) do
--- 		hero_name = GetSelectedHeroName(id);
--- 		table.insert(botPlayers, id)
--- 	end
+	-- players = GetTeamPlayers(GetTeam())
+	-- botPlayers = {};
 
--- 	for i = 1, #botPlayers do
--- 		SelectHero(botPlayers[i], picked_hero[i])
--- 	end
+	-- for _,id in pairs(players) do
+	-- 	table.insert(botPlayers, id)
+	-- end
+
+	-- for i = 1, #botPlayers do
+	-- 	SelectHero(botPlayers[i], picked_hero[i])
+	-- end
 end
