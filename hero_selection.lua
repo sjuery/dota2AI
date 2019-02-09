@@ -111,33 +111,58 @@ hero_pool = {
 	"npc_dota_hero_winter_wyvern",
 	"npc_dota_hero_witch_doctor",
 	"npc_dota_hero_skeleton_king",
-	"npc_dota_hero_zuus",
+	"npc_dota_hero_zuus"
 }
+
+picked_hero = {}
+
+math.randomseed(1267)
 
 function Think()
 	if GetHeroPickState() == HEROPICK_STATE_CM_CAPTAINPICK then	
-		PickCaptain();
-	elseif GetHeroPickState() >= HEROPICK_STATE_CM_BAN1 and GetHeroPickState() <= HEROPICK_STATE_CM_BAN10 then
-		BansHero();
+		PickCaptain()
+	elseif GetHeroPickState() >= HEROPICK_STATE_CM_BAN1 and GetHeroPickState() <= HEROPICK_STATE_CM_BAN12 then
+		BansHero()
 	elseif GetHeroPickState() >= HEROPICK_STATE_CM_SELECT1 and GetHeroPickState() <= HEROPICK_STATE_CM_SELECT10 then
-		PicksHero();	
+		PicksHero()	
 	elseif GetHeroPickState() == HEROPICK_STATE_CM_PICK then
-		SelectsHero();
+		SelectsHero()
 	end
 end
 
 function PickCaptain()
-	print("Gotta Pick Captain")
+	SetCMCaptain(1)
 end
 
 function BansHero()
-	print("Gotta Ban Hero")
+	heroToBan = hero_pool[math.random(112)]
+	if IsCMBannedHero(heroToBan) == 1 or IsCMPickedHero(TEAM_RADIANT, heroToBan) == 1 or IsCMPickedHero(TEAM_DIRE, heroToBan) == 1 then
+		BansHero()
+	else
+		CMBanHero(heroToBan)
+	end
 end
 
 function PicksHero()
-	print("Gotta Pick Hero")
+	heroToPick = hero_pool[math.random(112)]
+	if IsCMBannedHero(heroToPick) == 1 or IsCMPickedHero(TEAM_RADIANT, heroToPick) == 1 or IsCMPickedHero(TEAM_DIRE, heroToPick) == 1 then
+		PicksHero()
+	else
+		CMPickHero(heroToPick)
+		table.insert(picked_hero, heroToPick)
+	end
 end
 
 function SelectsHero()
-	print("Gotta Select Hero")
+-- 	players = GetTeamPlayers(GetTeam())
+-- 	botPlayers = {};
+
+-- 	for _,id in pairs(players) do
+-- 		hero_name = GetSelectedHeroName(id);
+-- 		table.insert(botPlayers, id)
+-- 	end
+
+-- 	for i = 1, #botPlayers do
+-- 		SelectHero(botPlayers[i], picked_hero[i])
+-- 	end
 end
