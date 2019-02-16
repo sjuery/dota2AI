@@ -1,3 +1,13 @@
+function GetDistance(s, t)
+    return math.sqrt((s[1]-t[1])*(s[1]-t[1]) + (s[2]-t[2])*(s[2]-t[2]));
+end
+
+function runAway(start, towards, distance)
+    local facing = start - towards
+    local direction = facing / GetDistance(facing, Vector(0,0)) --normalized
+    return start + (direction * distance)
+end
+
 function Start(npcBot)
 	if GetTeam() == TEAM_RADIANT then
         if npcBot:GetPlayerID() == 2 or npcBot:GetPlayerID() == 7 then
@@ -27,8 +37,18 @@ end
 function AttackEnemyCreep(npcBot)
 	local desire = 1
 	local listEnemyCreep = npcBot:GetNearbyCreeps(1200, true)
+	local listAlliedCreep = npcBot:GetNearbyCreeps(1200, false)
     if #listEnemyCreep == 0 then
         return desire, nil
+    end
+
+    local listEnemyTowers = npcBot:GetNearbyTowers(1200, true)
+    if #listEnemyTowers > 0 then
+        local dist = GetUnitToUnitDistance(npcBot, listEnemyTowers[1])
+        if dist < 750 then
+            npcBot:Action_MoveToLocation(runAway(npcBot:GetLocation(), listEnemyTowers[1]:GetLocation(), 1000-dist))
+            return
+        end
     end
 
     local weakestCreep = nil
@@ -42,10 +62,11 @@ function AttackEnemyCreep(npcBot)
     	end
     end
 
-    if lowestHealth <= npcBot:GetAttackDamage() then
+    if lowestHealth <= npcBot:GetEstimatedDamageToTarget(true, weakestCreep, npcBot:GetAttackSpeed(), DAMAGE_TYPE_PHYSICAL) then
     	desire = 100
-    elseif lowestHealth <= npcBot:GetAttackDamage() * 2 then
-    	desire = 0
+    elseif lowestHealth <= npcBot:GetEstimatedDamageToTarget(true, weakestCreep, npcBot:GetAttackSpeed(), DAMAGE_TYPE_PHYSICAL) * 1.5 then
+    	desire = 70
+    	weakestCreep = listEnemyCreep[1];
     else
     	desire = 80
     end
@@ -70,10 +91,29 @@ function DenyAlliedCreep(npcBot)
 	    end
     end
 
-    if lowestHealth <= npcBot:GetAttackDamage() then
+    if lowestHealth <= npcBot:GetEstimatedDamageToTarget(true, weakestCreep, npcBot:GetAttackSpeed(), DAMAGE_TYPE_PHYSICAL) then
     	desire = 90
     end
     return desire, weakestCreep
+end
+
+function Retreat(npcBot)
+	local healthPerc = npcBot:GetHealth()/npcBot:GetMaxHealth()
+	local nearETowers = npcBot:GetNearbyTowers(900, true)
+
+	-- if HealthPerc < 0.4 then
+ --        return 50
+ --    elseif HealthPerc < 0.2 then
+ --    	return 110
+ --    end
+
+    if npcBot:WasRecentlyDamagedByCreep(1.0) then
+        return 80
+    end
+
+    if #nearETowers > 0 then
+        return 110
+    end
 end
 
 function Think()
@@ -93,7 +133,7 @@ function Think()
 	desire_scores['hit_enemy_creep'], creepToHit = AttackEnemyCreep(npcBot)
 	desire_scores['deny_ally_creep'], creepToDeny = DenyAlliedCreep(npcBot)
 	desire_scores['change_position'] = 1
-	desire_scores['retreat'] = 1
+	desire_scores['retreat'] = Retreat(npcBot)
 	desire_scores['return_to_base'] = 1
 	desire_scores['secret_rush'] = 1
 	desire_scores['secret_immobile'] = 1
@@ -105,12 +145,30 @@ function Think()
 		end
 	end
 
+	if GetTeam() == TEAM_RADIANT then
+		enemyTeam = TEAM_DIRE
+	else
+		enemyTeam = TEAM_RADIANT
+	end
+
 	if npcBot:GetPlayerID() == 2 or npcBot:GetPlayerID() == 7 then
-		npcBot:Action_MoveToLocation(GetLaneFrontLocation(GetTeam(), LANE_MID, 300.0))
+		front = GetLaneFrontAmount(GetTeam(), LANE_MID, false)
+    	enemyfront = GetLaneFrontAmount(enemyTeam, LANE_MID, false)
+    	front = Min(front, enemyfront)
+    	dest = GetLocationAlongLane(LANE_MID, Min(1.0, front))
+		npcBot:Action_MoveToLocation(dest)
 	elseif npcBot:GetPlayerID() == 3 or npcBot:GetPlayerID() == 4 or npcBot:GetPlayerID() == 8 or npcBot:GetPlayerID() == 9 then
-		npcBot:Action_MoveToLocation(GetLaneFrontLocation(GetTeam(), LANE_BOT, 300.0))
+		front = GetLaneFrontAmount(GetTeam(), LANE_BOT, false)
+    	enemyfront = GetLaneFrontAmount(enemyTeam, LANE_BOT, false)
+    	front = Min(front, enemyfront)
+    	dest = GetLocationAlongLane(LANE_BOT, Min(1.0, front))
+		npcBot:Action_MoveToLocation(dest)
 	elseif npcBot:GetPlayerID() == 5 or npcBot:GetPlayerID() == 6 or npcBot:GetPlayerID() == 10 or npcBot:GetPlayerID() == 11 then
-		npcBot:Action_MoveToLocation(GetLaneFrontLocation(GetTeam(), LANE_TOP, 300.0))
+		front = GetLaneFrontAmount(GetTeam(), LANE_TOP, false)
+    	enemyfront = GetLaneFrontAmount(enemyTeam, LANE_TOP, false)
+    	front = Min(front, enemyfront)
+    	dest = GetLocationAlongLane(LANE_TOP, Min(1.0, front))
+		npcBot:Action_MoveToLocation(dest)
 	end
 
 	if highest_task == 'hit_enemy_tower' then
@@ -139,7 +197,23 @@ function Think()
 	end
 
 	if highest_task == 'retreat' then
-		--Go back to base
+		if npcBot:GetPlayerID() == 2 or npcBot:GetPlayerID() == 7 then
+			front = GetLaneFrontAmount(GetTeam(), LANE_MID, false)
+	    	enemyfront = GetLaneFrontAmount(enemyTeam, LANE_MID, false)
+	    	front = Min(front, enemyfront)
+			pos = GetLocationAlongLane(LANE_MID, front - 0.05) + RandomVector(200)
+		elseif npcBot:GetPlayerID() == 3 or npcBot:GetPlayerID() == 4 or npcBot:GetPlayerID() == 8 or npcBot:GetPlayerID() == 9 then
+			front = GetLaneFrontAmount(GetTeam(), LANE_BOT, false)
+	    	enemyfront = GetLaneFrontAmount(enemyTeam, LANE_BOT, false)
+	    	front = Min(front, enemyfront)
+			pos = GetLocationAlongLane(LANE_BOT, front - 0.05) + RandomVector(200)
+		elseif npcBot:GetPlayerID() == 5 or npcBot:GetPlayerID() == 6 or npcBot:GetPlayerID() == 10 or npcBot:GetPlayerID() == 11 then
+			front = GetLaneFrontAmount(GetTeam(), LANE_TOP, false)
+	    	enemyfront = GetLaneFrontAmount(enemyTeam, LANE_TOP, false)
+	    	front = Min(front, enemyfront)
+	    	pos = GetLocationAlongLane(LANE_TOP, front - 0.05) + RandomVector(200)
+		end
+	    npcBot:Action_MoveToLocation(pos)
 		return
 	end
 
