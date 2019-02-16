@@ -73,6 +73,27 @@ function AttackEnemyCreep(npcBot)
     return desire, weakestCreep
 end
 
+function AttackTower(npcBot)
+	local listNearbyETowers = npcBot:GetNearbyTowers(1200, true)
+	local listAlliedCreep = npcBot:GetNearbyCreeps(1200, false)
+	if #listNearbyETowers <= 0 then
+		return 0, nil
+	end
+	if #listAlliedCreep <= 2 then
+		return 0, nil
+	end
+	return 111, listNearbyETowers[1]
+end
+
+function AttackEnemy(npcBot)
+	local listNearbyEHeroes = npcBot:GetNearbyHeroes(1200, true, BOT_MODE_NONE)
+	local listNearbyAHeroes = npcBot:GetNearbyHeroes(1200, false, BOT_MODE_NONE)
+	if #listNearbyEHeroes > #listNearbyAHeroes then
+		return 0, nil
+	end
+	return 95, listNearbyEHeroes[1]
+end
+
 function DenyAlliedCreep(npcBot)
 	local desire = 1
 	local listAlliedCreep = npcBot:GetNearbyCreeps(1200, false)
@@ -98,14 +119,16 @@ function DenyAlliedCreep(npcBot)
 end
 
 function Retreat(npcBot)
-	local healthPerc = npcBot:GetHealth()/npcBot:GetMaxHealth()
-	local nearETowers = npcBot:GetNearbyTowers(900, true)
+	local health = npcBot:GetHealth()
+	local maxhealth = npcBot:GetMaxHealth()
+	local healthPerc = health / maxhealth
 
-	-- if HealthPerc < 0.4 then
- --        return 50
- --    elseif HealthPerc < 0.2 then
- --    	return 110
- --    end
+	nearETowers = npcBot:GetNearbyTowers(1200, true)
+	if healthPerc < 0.4 then
+        return 80
+    elseif healthPerc < 0.2 then
+    	return 5000
+    end
 
     if npcBot:WasRecentlyDamagedByCreep(1.0) then
         return 80
@@ -129,7 +152,7 @@ function Think()
 
 	--create a function for each desire_score that will assign needed variables (such as enemy to hit, vec3 to relocate...) and desire score.
 	desire_scores['hit_enemy_tower'] = 1
-	desire_scores['hit_enemy_hero'] = 1
+	desire_scores['hit_enemy_hero'], heroToHit = AttackEnemy(npcBot)
 	desire_scores['hit_enemy_creep'], creepToHit = AttackEnemyCreep(npcBot)
 	desire_scores['deny_ally_creep'], creepToDeny = DenyAlliedCreep(npcBot)
 	desire_scores['change_position'] = 1
@@ -177,7 +200,7 @@ function Think()
 	end
 	
 	if highest_task == 'hit_enemy_hero' then
-		--Hit Enemy Hero
+		npcBot:Action_AttackUnit(heroToHit, true)
 		return
 	end
 
