@@ -1,3 +1,11 @@
+carry_pool = {
+	"npc_dota_hero_terrorblade",
+	"npc_dota_hero_lone_druid",
+	"npc_dota_hero_abyssal_underlord",
+	"npc_dota_hero_furion", -- Natures prophet
+	"npc_dota_hero_omniknight",
+}
+
 hero_pool = {
 	"npc_dota_hero_abaddon",
 	"npc_dota_hero_abyssal_underlord",
@@ -116,7 +124,7 @@ hero_pool = {
 
 picked_hero = {}
 
-math.randomseed(1267)
+math.randomseed(1268)
 
 function Think()
 	if GetHeroPickState() == HEROPICK_STATE_CM_CAPTAINPICK then	
@@ -135,6 +143,9 @@ function PickCaptain()
 end
 
 function BansHero()
+	if not IsPlayerInHeroSelectionControl(GetCMCaptain()) then
+		return
+	end
 	heroToBan = hero_pool[math.random(112)]
 	if IsCMBannedHero(heroToBan) == 1 or IsCMPickedHero(TEAM_RADIANT, heroToBan) == 1 or IsCMPickedHero(TEAM_DIRE, heroToBan) == 1 then
 		BansHero()
@@ -144,7 +155,10 @@ function BansHero()
 end
 
 function PicksHero()
-	heroToPick = hero_pool[math.random(112)]
+	if not IsPlayerInHeroSelectionControl(GetCMCaptain()) then
+		return
+	end
+	heroToPick = carry_pool[math.random(5)]
 	if IsCMBannedHero(heroToPick) == 1 or IsCMPickedHero(TEAM_RADIANT, heroToPick) == 1 or IsCMPickedHero(TEAM_DIRE, heroToPick) == 1 then
 		PicksHero()
 	else
