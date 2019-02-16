@@ -1,47 +1,37 @@
-local tableItemsToBuy = { 
-				"item_courier",
-				"item_tango",
-				"item_clarity",
-				"item_clarity",
-				"item_branches",
-				"item_branches",
-				"item_magic_stick",
-				"item_circlet",
-				"item_boots",
-				"item_energy_booster",
-				"item_staff_of_wizardry",
-				"item_ring_of_regen",
-				"item_recipe_force_staff",
-				"item_point_booster",
-				"item_staff_of_wizardry",
-				"item_ogre_axe",
-				"item_blade_of_alacrity",
-				"item_mystic_staff",
-				"item_ultimate_orb",
-				"item_void_stone",
-				"item_staff_of_wizardry",
-				"item_wind_lace",
-				"item_void_stone",
-				"item_recipe_cyclone",
-				"item_cyclone",
-			};
+local buy_order = {
+	"item_courier",
+	"item_tango",
+	"item_tango",
+	"item_tango",
+	"item_flask",
+	"item_stout_shield",
+	"item_quelling_blade",
+	"item_circlet",
+	"item_slippers",
+	"item_recipe_wraith_band",
+	"item_boots",
+	"item_boots_of_elves",
+	"item_gloves",
+	"item_boots_of_elves",
+	"item_boots_of_elves",
+	"item_ogre_axe"
+};
 
 function ItemPurchaseThink()
-	local npcBot = GetBot();
+	local bot = GetBot()
 
-	if ( #tableItemsToBuy == 0 )
-	then
-		npcBot:SetNextItemPurchaseValue( 0 );
-		return;
+	if #buy_order == 0 then
+		bot:SetNextItemPurchaseValue(0)
+		return
 	end
 
-	local sNextItem = tableItemsToBuy[1];
+	local item = buy_order[1]
+	local cost = GetItemCost(item)
 
-	npcBot:SetNextItemPurchaseValue( GetItemCost( sNextItem ) );
+	bot:SetNextItemPurchaseValue(cost)
 
-	if ( npcBot:GetGold() >= GetItemCost( sNextItem ) )
-	then
-		npcBot:ActionImmediate_PurchaseItem( sNextItem );
-		table.remove( tableItemsToBuy, 1 );
+	if bot:GetGold() >= cost then
+		bot:ActionImmediate_PurchaseItem(item)
+		table.remove(buy_order, 1)
 	end
 end

@@ -1,3 +1,6 @@
+require(GetScriptDirectory() .. "/utility")
+require(GetScriptDirectory() .. "/use_items")
+
 function GetDistance(s, t)
     return math.sqrt((s[1]-t[1])*(s[1]-t[1]) + (s[2]-t[2])*(s[2]-t[2]));
 end
