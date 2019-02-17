@@ -5,7 +5,8 @@ local desires = DeepCopy(generic_desires)
 
 local bot = {
 	["ref"] = GetBot(),
-	["lane"] = LANE_MID
+	["lane"] = LANE_MID,
+	["retreat"] = 0
 }
 
 function Think()

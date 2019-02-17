@@ -3,7 +3,7 @@
 function GetItems(bot)
 	local items = {}
 	for i = 0, 5 do
-		local item = bot:GetItemInSlot(i)
+		local item = bot.ref:GetItemInSlot(i)
 		if (item ~= nil) then
 			items[item:GetName()] = item
 		end
@@ -14,7 +14,7 @@ end
 function GetItemsCount(bot)
 	local count = 0
 	for i = 0, 5 do
-		local item = bot:GetItemInSlot(i)
+		local item = bot.ref:GetItemInSlot(i)
 		if (item ~= nil) then
 			count = count + 1
 		end
@@ -48,7 +48,7 @@ end
 function UpdateBot(bot)
 	bot.hp_max = bot.ref:GetMaxHealth()
 	bot.hp_current =  bot.ref:GetHealth()
-	bot.hp_percent = current_hp / max_hp
+	bot.hp_percent = bot.hp_current / bot.hp_max
 	bot.location = bot.ref:GetLocation()
 end
 
