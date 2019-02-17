@@ -52,6 +52,33 @@ function Meme(bot, value)
 end
 
 local function UpKeep(bot)
+	local max_hp = bot:GetMaxHealth()
+	local current_hp = bot:GetHealth()
+
+	local hp_percent = current_hp / max_hp
+	local items = GetItemsAvailable(bot)
+
+	local tango = nil
+	if items["item_tango_single"] ~= nil then
+		tango = items["item_tango_single"]
+	elseif items["item_tango"] then
+		tango = items["item_tango"]
+	end
+
+	if hp_percent < 0.8 and tango ~= nil and not bot:HasModifier("modifier_tango_heal") and tango:IsFullyCastable() then
+		local trees = bot:GetNearbyTrees(600)
+		if #trees > 0 then
+			local tree_pos = GetTreeLocation(trees[1])
+			if IsLocationVisible(tree_pos) or IsLocationPassable(tree_pos) then
+				bot:Action_UseAbilityOnTree(tango, trees[1])
+			end
+		end
+	end
+
+	local flask = items["item_flask"]
+	if hp_percent < 0.33 and flask ~= nil and flask:IsFullyCastable() then
+		bot:Action_UseAbilityOnEntity(flask, bot)
+	end
 end
 
 generic_desires = {

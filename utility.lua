@@ -1,15 +1,14 @@
 
--- Item reference or nil
-function IsItemAvailable(bot, item_name)
+-- Returns table of items indexed on item name
+function GetItemsAvailable(bot)
+    local items = {}
     for i = 0, 5 do
         local item = bot:GetItemInSlot(i)
         if (item ~= nil) then
-            if (item:GetName() == item_name) then
-                return item
-            end
+            items[item:GetName()] = item
         end
     end
-    return nil
+    return items
 end
 
 function DeepCopy(orig)
@@ -25,4 +24,12 @@ function DeepCopy(orig)
         copy = orig
     end
     return copy
+end
+
+-- Takes two vec2
+-- Returns the euclidean distance
+function GetDistance(a, b)
+    local x = a[1] - b[1]
+    local y = a[2] - b[2]
+    return math.sqrt(x * x + y * y);
 end
