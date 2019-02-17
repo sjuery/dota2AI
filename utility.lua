@@ -25,13 +25,13 @@ end
 function DeepCopy(orig)
 	local orig_type = type(orig)
 	local copy
-	if orig_type == 'table' then
+	if orig_type == "table" then
 		copy = {}
 		for orig_key, orig_value in next, orig, nil do
 			copy[DeepCopy(orig_key)] = DeepCopy(orig_value)
 		end
 		setmetatable(copy, DeepCopy(getmetatable(orig)))
-	else -- number, string, boolean, etc
+	else
 		copy = orig
 	end
 	return copy
@@ -42,5 +42,19 @@ end
 function GetDistance(a, b)
 	local x = a[1] - b[1]
 	local y = a[2] - b[2]
-	return math.sqrt(x * x + y * y);
+	return math.sqrt(x * x + y * y)
+end
+
+function UpdateBot(bot)
+	bot.hp_max = bot.ref:GetMaxHealth()
+	bot.hp_current =  bot.ref:GetHealth()
+	bot.hp_percent = current_hp / max_hp
+	bot.location = bot.ref:GetLocation()
+end
+
+function GetEnemyTeam()
+	if GetTeam() == TEAM_RADIANT then
+		return TEAM_DIRE
+	end
+	return TEAM_RADIANT
 end

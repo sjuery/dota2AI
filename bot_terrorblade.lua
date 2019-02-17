@@ -3,19 +3,12 @@ require(GetScriptDirectory() .. "/utility")
 
 local desires = DeepCopy(generic_desires)
 
-if GetTeam() == TEAM_RADIANT then
-    enemyTeam = TEAM_DIRE
-else
-    enemyTeam = TEAM_RADIANT
-end
-
-local botInfo = {
-	['bot'] = GetBot(),
-	['team'] = GetTeam(),
-	['eteam'] = enemyTeam,
-	['lane'] = "Middle"
+local bot = {
+	["ref"] = GetBot(),
+	["lane"] = LANE_MID
 }
 
 function Think()
-	Thonk(botInfo, desires)
+	UpdateBot(bot)
+	Thonk(bot, desires)
 end
