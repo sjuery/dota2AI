@@ -56,7 +56,7 @@ local function UpKeep(bot)
 	local current_hp = bot:GetHealth()
 
 	local hp_percent = current_hp / max_hp
-	local items = GetItemsAvailable(bot)
+	local items = GetItems(bot)
 
 	local tango = nil
 	if items["item_tango_single"] ~= nil then
