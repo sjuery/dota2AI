@@ -3,13 +3,19 @@ require(GetScriptDirectory() .. "/utility")
 
 local desires = DeepCopy(generic_desires)
 
-function CustomMode(bot, value)
-	print("am custom")
+if GetTeam() == TEAM_RADIANT then
+    enemyTeam = TEAM_DIRE
+else
+    enemyTeam = TEAM_RADIANT
 end
 
-desires["farm"][2] = CustomMode
+local botInfo = {
+	['bot'] = GetBot(),
+	['team'] = GetTeam(),
+	['eteam'] = enemyTeam,
+	['lane'] = "Middle"
+}
 
 function Think()
-	local bot = GetBot()
-	Thonk(bot, desires)
+	Thonk(botInfo, desires)
 end

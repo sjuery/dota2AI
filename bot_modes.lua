@@ -1,57 +1,101 @@
-function FarmDesire(bot)
-	return {100, nil}
+function FarmDesire(botInfo)
+	return {10, nil}
 end
 
-function Farm(bot, value)
-	print("am farm")
+function Farm(botInfo, value)
+	if botInfo["lane"] == "Middle" then
+		front = GetLaneFrontAmount(botInfo["team"], LANE_MID, false)
+		enemyfront = GetLaneFrontAmount(botInfo["eteam"], LANE_MID, false)
+		front = Min(front, enemyfront)
+		dest = GetLocationAlongLane(LANE_MID, Min(1.0, front))
+		botInfo["bot"]:Action_MoveToLocation(dest)
+	elseif botInfo["lane"] == "Bottom" then
+		front = GetLaneFrontAmount(botInfo["team"], LANE_BOT, false)
+		enemyfront = GetLaneFrontAmount(botInfo["eteam"], LANE_BOT, false)
+		front = Min(front, enemyfront)
+		dest = GetLocationAlongLane(LANE_BOT, Min(1.0, front))
+		botInfo["bot"]:Action_MoveToLocation(dest)
+	elseif botInfo["lane"] == "Top" then
+		front = GetLaneFrontAmount(botInfo["team"], LANE_TOP, false)
+		enemyfront = GetLaneFrontAmount(botInfo["eteam"], LANE_TOP, false)
+		front = Min(front, enemyfront)
+		dest = GetLocationAlongLane(LANE_TOP, Min(1.0, front))
+		botInfo["bot"]:Action_MoveToLocation(dest)
+	end
 end
 
 
-function RetreatDesire(bot)
+function RetreatDesire(botInfo)
 	return {0, nil}
 end
 
-function Retreat(bot, value)
+function Retreat(botInfo, value)
 	print("am retreat")
 end
 
 
-function PushDesire(bot)
+function PushDesire(botInfo)
 	return {0, nil}
 end
 
-function Push(bot, value)
+function Push(botInfo, value)
 	print("am push")
 end
 
 
-function FightDesire(bot)
+function FightDesire(botInfo)
 	return {0, nil}
 end
 
-function Fight(bot, value)
+function Fight(botInfo, value)
 	print("am fight")
 end
 
 
-function RuneDesire(bot)
+function RuneDesire(botInfo)
+	if DotaTime() <= 0.3 then
+		return {20, 1}
+	end
 	return {0, nil}
 end
 
-function Rune(bot, value)
+function Rune(botInfo, value)
+	if botInfo["lane"] == TEAM_RADIANT then
+		if botInfo["lane"] == "Middle" then
+			botInfo["bot"]:Action_MoveToLocation(GetRuneSpawnLocation(RUNE_BOUNTY_3))
+			botInfo["bot"]:Action_PickUpRune(RUNE_BOUNTY_3)
+		elseif botInfo["lane"] == "Top" then
+			botInfo["bot"]:Action_MoveToLocation(GetRuneSpawnLocation(RUNE_BOUNTY_3)+Vector(-350, -600))
+			botInfo["bot"]:Action_PickUpRune(RUNE_BOUNTY_3)
+		elseif botInfo["lane"] == "Bottom" then
+			botInfo["bot"]:Action_MoveToLocation(GetRuneSpawnLocation(RUNE_BOUNTY_1))
+			botInfo["bot"]:Action_PickUpRune(RUNE_BOUNTY_1)
+		end
+	else
+		if botInfo["lane"] == "Middle" then
+			botInfo["bot"]:Action_MoveToLocation(GetRuneSpawnLocation(RUNE_BOUNTY_2))
+			botInfo["bot"]:Action_PickUpRune(RUNE_BOUNTY_2)
+		elseif botInfo["lane"] == "Top" then
+			botInfo["bot"]:Action_MoveToLocation(GetRuneSpawnLocation(RUNE_BOUNTY_2)+Vector(-250, 1000))
+			botInfo["bot"]:Action_PickUpRune(RUNE_BOUNTY_2)
+		elseif botInfo["lane"] == "Bottom" then
+			botInfo["bot"]:Action_MoveToLocation(GetRuneSpawnLocation(RUNE_BOUNTY_4))
+			botInfo["bot"]:Action_PickUpRune(RUNE_BOUNTY_4)
+		end
+	end
 	print("am rune")
 end
 
 
-function MemeDesire(bot)
+function MemeDesire(botInfo)
 	return {0, nil}
 end
 
-function Meme(bot, value)
+function Meme(botInfo, value)
 	print("am meme")
 end
 
-local function UpKeep(bot)
+local function UpKeep(botInfo)
 end
 
 generic_desires = {
@@ -63,14 +107,14 @@ generic_desires = {
 	["meme"] = {MemeDesire, Meme}
 }
 
-function Thonk(bot, desires)
-	UpKeep(bot)
+function Thonk(botInfo, desires)
+	UpKeep(botInfo)
 	local desire_best = -1
 	local desire_value = nil
 	local desire_mode = nil
 
 	for name, thonkage in pairs(desires) do
-		local thonk_result = thonkage[1](bot)
+		local thonk_result = thonkage[1](botInfo)
 		local desire = thonk_result[1]
 		local value = thonk_result[2]
 		if desire > desire_best then
@@ -79,5 +123,5 @@ function Thonk(bot, desires)
 			desire_mode = thonkage[2]
 		end
 	end
-	desire_mode(bot, desire_value)
+	desire_mode(botInfo, desire_value)
 end
