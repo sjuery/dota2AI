@@ -51,7 +51,7 @@ function Meme(bot, value)
 	print("am meme")
 end
 
-function UpKeep(bot)
+local function UpKeep(bot)
 end
 
 generic_desires = {
