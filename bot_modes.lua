@@ -3,6 +3,7 @@ function FarmDesire(botInfo)
 end
 
 function Farm(botInfo, value)
+	print("farm plz")
 	if botInfo["lane"] == "Middle" then
 		front = GetLaneFrontAmount(botInfo["team"], LANE_MID, false)
 		enemyfront = GetLaneFrontAmount(botInfo["eteam"], LANE_MID, false)
@@ -96,6 +97,37 @@ function Meme(botInfo, value)
 end
 
 local function UpKeep(botInfo)
+	print("upkeeping")
+	local bot = botInfo["bot"]
+	local max_hp = bot:GetMaxHealth()
+	local current_hp = bot:GetHealth()
+
+	local hp_percent = current_hp / max_hp
+	local items = GetItems(bot)
+
+	local tango = nil
+	if items["item_tango_single"] ~= nil then
+		tango = items["item_tango_single"]
+	elseif items["item_tango"] then
+		tango = items["item_tango"]
+	end
+
+	if hp_percent < 0.8 and tango ~= nil and not bot:HasModifier("modifier_tango_heal") and tango:IsFullyCastable() then
+		print("wanna heal")
+		local trees = bot:GetNearbyTrees(600)
+		if #trees > 0 then
+			local tree_pos = GetTreeLocation(trees[1])
+			if IsLocationVisible(tree_pos) or IsLocationPassable(tree_pos) then
+				bot:Action_UseAbilityOnTree(tango, trees[1])
+			end
+		end
+	end
+
+	local flask = items["item_flask"]
+	if hp_percent < 0.33 and flask ~= nil and flask:IsFullyCastable() then
+		print("wanna really heal")
+		bot:Action_UseAbilityOnEntity(flask, bot)
+	end
 end
 
 generic_desires = {
@@ -108,7 +140,6 @@ generic_desires = {
 }
 
 function Thonk(botInfo, desires)
-	UpKeep(botInfo)
 	local desire_best = -1
 	local desire_value = nil
 	local desire_mode = nil
@@ -124,4 +155,5 @@ function Thonk(botInfo, desires)
 		end
 	end
 	desire_mode(botInfo, desire_value)
+	UpKeep(botInfo)
 end
