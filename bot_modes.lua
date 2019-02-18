@@ -45,6 +45,7 @@ function Farm(bot, value)
 	dest = GetLocationAlongLane(bot.lane, Min(1.0, front))
 	bot.ref:Action_MoveToLocation(dest)
 	bot.ref:Action_AttackUnit(value, true)
+	print("am farm")
 end
 
 
@@ -57,13 +58,17 @@ function RetreatDesire(bot)
 	nearAlliedCreep = bot.ref:GetNearbyCreeps(1200, false)
 	nearETowers = bot.ref:GetNearbyTowers(1200, true)
 	if bot.hp_percent < 0.4 then
-		return {30, DotaTime() + 5}
+		return {30, DotaTime() + 7}
 	elseif bot.hp_percent < 0.2 then
-		return {60, DotaTime() + 5}
+		return {60, DotaTime() + 10}
 	end
 
 	if bot.ref:WasRecentlyDamagedByCreep(1.0) then
-		return {20, DotaTime() + 5}
+		return {50, DotaTime() + 3}
+	end
+
+	if bot.ref:WasRecentlyDamagedByTower(1.0) then
+		return {100, DotaTime() + 5}
 	end
 
 	if #nearETowers > 0 and #nearAlliedCreep <= 2 then
@@ -84,20 +89,39 @@ end
 
 
 function PushDesire(bot)
-	return {0, nil}
+	local listNearbyETowers = bot.ref:GetNearbyTowers(1200, true)
+	local listAlliedCreeps = bot.ref:GetNearbyCreeps(1200, false)
+	local listEnemyCreeps = bot.ref:GetNearbyCreeps(1200, true)
+
+	if #listAlliedCreeps >= 2 and #listEnemyCreeps <= 2 then
+		return {45, listNearbyETowers[1]}
+	end
+	return {2, listNearbyETowers[1]}
 end
 
 function Push(bot, value)
-	print("am push")
+	front = GetLaneFrontAmount(GetTeam(), bot.lane, false)
+	enemyfront = GetLaneFrontAmount(GetEnemyTeam(), bot.lane, false)
+	front = Min(front, enemyfront)
+	dest = GetLocationAlongLane(bot.lane, Min(1.0, front))
+	bot.ref:Action_MoveToLocation(dest)
+	bot.ref:Action_AttackUnit(value, true)
 end
 
 
 function FightDesire(bot)
-	return {0, nil}
+	local listNearbyETowers = bot.ref:GetNearbyTowers(1200, true)
+	local listNearbyEHeroes = bot.ref:GetNearbyHeroes(1200, true, BOT_MODE_NONE)
+	local listNearbyAHeroes = bot.ref:GetNearbyHeroes(1200, false, BOT_MODE_NONE)
+
+	if #listNearbyAHeroes >= #listNearbyEHeroes and #listNearbyEHeroes ~= 0 and #listNearbyETowers ~= 0 then
+		return {30, listNearbyEHeroes[1]}
+	end
+	return {5, listNearbyEHeroes[1]}
 end
 
 function Fight(bot, value)
-	print("am fight")
+	bot.ref:Action_AttackUnit(value, true)
 end
 
 
@@ -105,12 +129,11 @@ function RuneDesire(bot)
 	if DotaTime() <= 0.3 then
 		return {20, 1}
 	end
-	return {0, nil}
+	return {1, nil}
 end
 
 function Rune(bot, value)
 	if GetTeam() == TEAM_RADIANT then
-		print(RUNE_BOUNTY_3)
 		if bot.lane == LANE_MID then
 			bot.ref:Action_MoveToLocation(GetRuneSpawnLocation(RUNE_BOUNTY_3))
 			bot.ref:Action_PickUpRune(RUNE_BOUNTY_3)

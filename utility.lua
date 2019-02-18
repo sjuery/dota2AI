@@ -58,3 +58,17 @@ function GetEnemyTeam()
 	end
 	return TEAM_RADIANT
 end
+
+function GetStartingLane(lane)
+    if GetTeam() == TEAM_RADIANT then
+        if lane == 1 then
+            return LANE_TOP
+        else
+            return LANE_BOT
+        end
+    end
+    if lane == 1 then
+        return LANE_BOT
+    end
+    return LANE_TOP
+end
