@@ -45,7 +45,9 @@ local function Farm(bot, value)
 	dest = GetLocationAlongLane(bot.lane, Min(1.0, front))
 	bot.ref:Action_MoveToLocation(dest)
 	bot.ref:Action_AttackUnit(value, true)
+	print("am farm")
 end
+
 
 local function RetreatDesire(bot)
 	if bot.retreat > GameTime() then
@@ -56,13 +58,17 @@ local function RetreatDesire(bot)
 	nearAlliedCreep = bot.ref:GetNearbyCreeps(1200, false)
 	nearETowers = bot.ref:GetNearbyTowers(1200, true)
 	if bot.hp_percent < 0.4 then
-		return {45, DotaTime() + 5}
-	elseif bot.hp_percent < 0.3 then
+		return {40, DotaTime() + 7}
+	elseif bot.hp_percent < 0.2 then
 		return {55, DotaTime() + 10}
 	end
 
 	if bot.ref:WasRecentlyDamagedByCreep(1.0) then
-		return {20, DotaTime() + 5}
+		return {50, DotaTime() + 3}
+	end
+
+	if bot.ref:WasRecentlyDamagedByTower(1.0) then
+		return {100, DotaTime() + 5}
 	end
 
 	if #nearETowers > 0 and #nearAlliedCreep <= 2 then
@@ -81,22 +87,40 @@ local function Retreat(bot, value)
 	print("am retreat")
 end
 
-
 local function PushDesire(bot)
-	return {0, nil}
+	local listNearbyETowers = bot.ref:GetNearbyTowers(1200, true)
+	local listAlliedCreeps = bot.ref:GetNearbyCreeps(1200, false)
+	local listEnemyCreeps = bot.ref:GetNearbyCreeps(1200, true)
+
+	if #listAlliedCreeps >= 2 and #listEnemyCreeps <= 2 then
+		return {45, listNearbyETowers[1]}
+	end
+	return {2, listNearbyETowers[1]}
 end
 
 local function Push(bot, value)
-	print("am push")
+	front = GetLaneFrontAmount(GetTeam(), bot.lane, false)
+	enemyfront = GetLaneFrontAmount(GetEnemyTeam(), bot.lane, false)
+	front = Min(front, enemyfront)
+	dest = GetLocationAlongLane(bot.lane, Min(1.0, front))
+	bot.ref:Action_MoveToLocation(dest)
+	bot.ref:Action_AttackUnit(value, true)
 end
 
 
 local function FightDesire(bot)
-	return {0, nil}
+	local listNearbyETowers = bot.ref:GetNearbyTowers(1200, true)
+	local listNearbyEHeroes = bot.ref:GetNearbyHeroes(1200, true, BOT_MODE_NONE)
+	local listNearbyAHeroes = bot.ref:GetNearbyHeroes(1200, false, BOT_MODE_NONE)
+
+	if #listNearbyAHeroes >= #listNearbyEHeroes and #listNearbyEHeroes ~= 0 and #listNearbyETowers ~= 0 then
+		return {30, listNearbyEHeroes[1]}
+	end
+	return {5, listNearbyEHeroes[1]}
 end
 
 local function Fight(bot, value)
-	print("am fight")
+	bot.ref:Action_AttackUnit(value, true)
 end
 
 
@@ -104,12 +128,11 @@ local function RuneDesire(bot)
 	if DotaTime() <= 0.3 then
 		return {20, 1}
 	end
-	return {0, nil}
+	return {1, nil}
 end
 
 local function Rune(bot, value)
 	if GetTeam() == TEAM_RADIANT then
-		print(RUNE_BOUNTY_3)
 		if bot.lane == LANE_MID then
 			bot.ref:Action_MoveToLocation(GetRuneSpawnLocation(RUNE_BOUNTY_3))
 			bot.ref:Action_PickUpRune(RUNE_BOUNTY_3)
@@ -144,9 +167,6 @@ local function Meme(bot, value)
 	print("am meme")
 end
 
-local function UpKeep(bot)
-	print("upkeeping")
-end
 
 local function HealDesire(bot)
 	if bot.hp_percent > 0.95
@@ -181,20 +201,18 @@ local function HealDesire(bot)
 		and not bot.ref:WasRecentlyDamagedByTower(1.2)
 		and tango:IsFullyCastable()
 	then
-		print("wanna heal")
 		local trees = bot.ref:GetNearbyTrees(1000)
 		if #trees > 0 then
 			local towers = bot.ref:GetNearbyTowers(1599, true)
 			local tree = nil
 
 			-- Search for safe trees (Not under enemy towers)
-			print("Searching for viable tree")
 			for i = 1, #trees do
 				local tree_pos = GetTreeLocation(trees[i])
 				if IsLocationVisible(tree_pos) or IsLocationPassable(tree_pos) then
 					for i = 1, #towers do
 						if GetDistance(tree_pos, towers[i]:GetLocation()) > 1300 then
-							print("found viable tree")
+							print("Found viable tango tree!")
 							tree = trees[i]
 							break
 						end
@@ -208,10 +226,27 @@ local function HealDesire(bot)
 			if tree ~= nil then
 				return {60, {tango, tree}}
 			end
-			print("No viable tree found :(")
 		end
 	end
-	return {0, nil}
+
+	-- local shrines = {
+	-- 	SHRINE_BASE_1,
+	-- 	SHRINE_BASE_2,
+	-- 	SHRINE_BASE_3,
+	-- 	SHRINE_BASE_4,
+	-- 	SHRINE_BASE_5,
+	-- 	SHRINE_JUNGLE_1,
+	-- 	SHRINE_JUNGLE_2
+	-- }
+	-- local team = GetTeam()
+	-- local shrine_dist = 100000
+	-- for i = 1, #shrines do
+	-- 	local shrine = GetShrine(team, shrines[i])
+	-- 	GetShrineCooldown()
+	-- 	IsShrineHealing()
+	-- end
+
+	-- return {0, nil}
 end
 
 local function Heal(bot, params)
@@ -221,8 +256,22 @@ local function Heal(bot, params)
 		bot.ref:Action_UseAbilityOnTree(heal_item, heal_target)
 	elseif name == "item_flask" then
 		bot.ref:Action_UseAbilityOnEntity(heal_item, heal_target)
+end
+
+
+local function UpKeep(bot)
+	if bot.ability_priority then
+		while bot.ref:GetAbilityPoints() > 0 do
+			local ability = bot.ref:GetAbilityByName(bot.ability_priority[1])
+			print("Upgrading ability: " .. bot.ability_priority[1])
+			if (ability:CanAbilityBeUpgraded() and ability:GetLevel() < ability:GetMaxLevel()) then
+				bot.ref:ActionImmediate_LevelAbility(bot.ability_priority[1])
+				table.remove(bot.ability_priority, 1)
+			end
+		end
 	end
 end
+
 
 generic_desires = {
 	["farm"] = {FarmDesire, Farm},

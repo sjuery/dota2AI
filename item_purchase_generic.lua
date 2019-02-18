@@ -18,6 +18,9 @@ local buy_order = {
 
 function ItemPurchaseThink()
 	local bot = GetBot()
+	if bot.buy_order then
+		return -- Skip bots with custom implementations
+	end
 
 	if #buy_order == 0 then
 		bot:SetNextItemPurchaseValue(0)
