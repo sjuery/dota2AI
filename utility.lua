@@ -1,27 +1,4 @@
 
--- Returns table of items indexed on item name
-function GetItems(bot)
-	local items = {}
-	for i = 0, 5 do
-		local item = bot:GetItemInSlot(i)
-		if (item ~= nil) then
-			items[item:GetName()] = item
-		end
-	end
-	return items
-end
-
-function GetItemsCount(bot)
-	local count = 0
-	for i = 0, 5 do
-		local item = bot:GetItemInSlot(i)
-		if (item ~= nil) then
-			count = count + 1
-		end
-	end
-	return count
-end
-
 function DeepCopy(orig)
 	local orig_type = type(orig)
 	local copy
@@ -48,7 +25,7 @@ end
 function UpdateBot(bot)
 	bot.hp_max = bot.ref:GetMaxHealth()
 	bot.hp_current =  bot.ref:GetHealth()
-	bot.hp_percent = current_hp / max_hp
+	bot.hp_percent = bot.hp_current / bot.hp_max
 	bot.location = bot.ref:GetLocation()
 end
 
@@ -57,4 +34,27 @@ function GetEnemyTeam()
 		return TEAM_DIRE
 	end
 	return TEAM_RADIANT
+end
+
+-- Returns table of items indexed on item name
+function GetItems(bot)
+	local items = {}
+	for i = 0, 5 do
+		local item = bot.ref:GetItemInSlot(i)
+		if (item ~= nil) then
+			items[item:GetName()] = item
+		end
+	end
+	return items
+end
+
+function GetItemsCount(bot)
+	local count = 0
+	for i = 0, 5 do
+		local item = bot.ref:GetItemInSlot(i)
+		if (item ~= nil) then
+			count = count + 1
+		end
+	end
+	return count
 end

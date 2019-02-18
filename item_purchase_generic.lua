@@ -2,19 +2,18 @@ local buy_order = {
 	"item_courier",
 	"item_tango",
 	"item_tango",
-	"item_tango",
 	"item_flask",
 	"item_stout_shield",
 	"item_quelling_blade",
-	"item_circlet",
-	"item_slippers",
-	"item_recipe_wraith_band",
+-- Power treads
 	"item_boots",
 	"item_boots_of_elves",
 	"item_gloves",
+-- Armlet of Mordiggian
+	"item_helm_of_iron_will",
 	"item_boots_of_elves",
-	"item_boots_of_elves",
-	"item_ogre_axe"
+	"item_blades_of_attack",
+	"item_recipe_armlet"
 };
 
 function ItemPurchaseThink()
