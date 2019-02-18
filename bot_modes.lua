@@ -1,8 +1,8 @@
-function FarmDesire(bot)
+local function FarmDesire(bot)
 	return {10, nil}
 end
 
-function Farm(bot, value)
+local function Farm(bot, value)
 	print("farm plz")
 	front = GetLaneFrontAmount(GetTeam(), bot.lane, false)
 	enemyfront = GetLaneFrontAmount(GetEnemyTeam(), bot.lane, false)
@@ -12,41 +12,41 @@ function Farm(bot, value)
 end
 
 
-function RetreatDesire(bot)
+local function RetreatDesire(bot)
 	return {0, nil}
 end
 
-function Retreat(bot, value)
+local function Retreat(bot, value)
 	print("am retreat")
 end
 
 
-function PushDesire(bot)
+local function PushDesire(bot)
 	return {0, nil}
 end
 
-function Push(bot, value)
+local function Push(bot, value)
 	print("am push")
 end
 
 
-function FightDesire(bot)
+local function FightDesire(bot)
 	return {0, nil}
 end
 
-function Fight(bot, value)
+local function Fight(bot, value)
 	print("am fight")
 end
 
 
-function RuneDesire(bot)
+local function RuneDesire(bot)
 	if DotaTime() <= 0.3 then
 		return {20, 1}
 	end
 	return {0, nil}
 end
 
-function Rune(bot, value)
+local function Rune(bot, value)
 	if GetTeam() == TEAM_RADIANT then
 		if bot.lane == LANE_MID then
 			bot.ref:Action_MoveToLocation(GetRuneSpawnLocation(RUNE_BOUNTY_3))
@@ -74,18 +74,35 @@ function Rune(bot, value)
 end
 
 
-function MemeDesire(bot)
+local function MemeDesire(bot)
 	return {0, nil}
 end
 
-function Meme(bot, value)
+local function Meme(bot, value)
 	print("am meme")
 end
 
 local function UpKeep(bot)
 	print("upkeeping")
+end
+
+local function HealDesire(bot)
+	if bot.hp_percent > 0.95 or 
+		bot.ref:HasModifier("modifier_fountain_aura_buff") or bot.ref:HasModifier("modifier_filler_heal") 
+	then
+		return {0, nil}
+	end
 
 	local items = GetItems(bot)
+
+
+
+	local salve = items["item_flask"]
+	if salve ~= nil and not bot.ref:HasModifier("modifier_flask_healing") and 
+		(bot.hp_max - bot.hp_current > 400 or bot.hp_percent < 0.33)
+	then
+		return {50, {salve, bot.ref}}
+	end
 
 	local tango = nil
 	if items["item_tango_single"] ~= nil then
@@ -93,28 +110,33 @@ local function UpKeep(bot)
 	elseif items["item_tango"] then
 		tango = items["item_tango"]
 	end
-
-	if bot.hp_percent < 0.8 and tango ~= nil and not bot.ref:HasModifier("modifier_tango_heal") and tango:IsFullyCastable() then
+	if tango ~= nil and bot.hp_percent < 0.9 and not bot.ref:HasModifier("modifier_tango_heal") and tango:IsFullyCastable() then
 		print("wanna heal")
 		local trees = bot:GetNearbyTrees(600)
 		if #trees > 0 then
 			local tree_pos = GetTreeLocation(trees[1])
 			if IsLocationVisible(tree_pos) or IsLocationPassable(tree_pos) then
 				bot:Action_UseAbilityOnTree(tango, trees[1])
+				return {40, {tango, trees[1]}}
 			end
 		end
 	end
+end
 
-	local flask = items["item_flask"]
-	if bot.hp_percent < 0.33 and flask ~= nil and flask:IsFullyCastable() then
-		print("wanna really heal")
-		bot.ref:Action_UseAbilityOnEntity(flask, bot)
+local function Heal(bot, params)
+	local heal_item, heal_target = unpack(params)
+	local name = heal_item:GetName()
+	if string.find(name, "tango") ~= nil then
+		bot.ref:Action_UseAbilityOnTree(heal_item, heal_target)
+	elseif name == "item_flask" then
+		bot.ref:Action_UseAbilityOnEntity(heal_item, heal_target)
 	end
 end
 
 generic_desires = {
 	["farm"] = {FarmDesire, Farm},
 	["retreat"] = {RetreatDesire, Retreat},
+	["heal"] = {HealDesire, Heal},
 	["push"] = {PushDesire, Push},
 	["fight"] = {FightDesire, Fight},
 	["rune"] = {RuneDesire, Rune},
