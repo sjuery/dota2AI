@@ -8,7 +8,7 @@ SKILL_W = "abyssal_underlord_pit_of_malice"
 SKILL_E = "abyssal_underlord_atrophy_aura"
 SKILL_R = "abyssal_underlord_dark_rift"
 
-TALENT_1 = "abyssal_underlord_dark_rift"
+TALENT_1 = "special_bonus_unique_underlord_2"
 TALENT_2 = "special_bonus_movement_speed_25"
 TALENT_3 = "special_bonus_cast_range_100"
 TALENT_4 = "special_bonus_unique_underlord_3"

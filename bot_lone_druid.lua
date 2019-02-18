@@ -6,7 +6,7 @@ local desires = DeepCopy(generic_desires)
 SKILL_Q = "lone_druid_spirit_bear"
 SKILL_W = "lone_druid_spirit_link"
 SKILL_E = "lone_druid_savage_roar"
-SKILL_R = "lone_druid_true_form_battle_cry"
+SKILL_R = "lone_druid_true_form"
 
 TALENT_1 = "special_bonus_hp_250"
 TALENT_2 = "special_bonus_attack_range_125"
@@ -18,7 +18,10 @@ TALENT_7 = "special_bonus_unique_lone_druid_10"
 TALENT_8 = "special_bonus_unique_lone_druid_7"
 
 local abilityPriority = {
-	SKILL_Q, SKILL_W, SKILL_Q, SKILL_W, SKILL_Q, SKILL_W, SKILL_Q, SKILL_W, SKILL_E, TALENT_1, SKILL_E, SKILL_E, SKILL_E, SKILL_R, TALENT_4, SKILL_R, SKILL_R, TALENT_7, TALENT_8
+	SKILL_Q, SKILL_W, SKILL_Q, SKILL_W, SKILL_Q,
+	SKILL_W, SKILL_Q, SKILL_W, SKILL_E, TALENT_1,
+	SKILL_E, SKILL_E, SKILL_E, SKILL_R, TALENT_4,
+	SKILL_R, SKILL_R, TALENT_6, TALENT_8
 }
 
 local bot = {
