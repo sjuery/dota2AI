@@ -155,7 +155,7 @@ local function Rune(bot, value)
 			bot.ref:Action_PickUpRune(RUNE_BOUNTY_4)
 		end
 	end
-	print("am rune")
+	--print("am rune")
 end
 
 
@@ -177,7 +177,6 @@ local function HealDesire(bot)
 	end
 
 	local items = GetItems(bot)
-
 
 	local salve = items["item_flask"]
 	if salve ~= nil 
@@ -227,6 +226,17 @@ local function HealDesire(bot)
 				return {60, {tango, tree}}
 			end
 		end
+
+
+	end
+
+	local clarity = items["item_clarity"]
+	if clarity ~= nil
+		and not bot.ref:HasModifier("modifier_clarity_potion")
+		and not bot.ref:WasRecentlyDamagedByAnyHero(3.0)
+		and (bot.mp_max - bot.mp_current > 225)
+	then
+		return {60, {clarity, bot.ref}}
 	end
 
 	-- local shrines = {
@@ -246,7 +256,7 @@ local function HealDesire(bot)
 	-- 	IsShrineHealing()
 	-- end
 
-	-- return {0, nil}
+	return {0, nil}
 end
 
 local function Heal(bot, params)
@@ -254,12 +264,30 @@ local function Heal(bot, params)
 	local name = heal_item:GetName()
 	if string.find(name, "tango") ~= nil then
 		bot.ref:Action_UseAbilityOnTree(heal_item, heal_target)
-	elseif name == "item_flask" then
+	elseif name == "item_flask" or name == "item_clarity" then
 		bot.ref:Action_UseAbilityOnEntity(heal_item, heal_target)
+	end
 end
 
+local generic_buy_order = {
+	"item_tango",
+	"item_tango",
+	"item_flask",
+	"item_stout_shield",
+	"item_quelling_blade",
+-- Power treads
+	"item_boots",
+	"item_boots_of_elves",
+	"item_gloves",
+-- Armlet of Mordiggian
+	"item_helm_of_iron_will",
+	"item_boots_of_elves",
+	"item_blades_of_attack",
+	"item_recipe_armlet"
+}
 
 local function UpKeep(bot)
+	-- Upgrade abilities
 	if bot.ability_priority then
 		while bot.ref:GetAbilityPoints() > 0 do
 			local ability = bot.ref:GetAbilityByName(bot.ability_priority[1])
@@ -268,6 +296,35 @@ local function UpKeep(bot)
 				bot.ref:ActionImmediate_LevelAbility(bot.ability_priority[1])
 				table.remove(bot.ability_priority, 1)
 			end
+		end
+	end
+
+	-- Buy items
+	local buy_order = generic_buy_order
+	if bot.buy_order ~= nil then
+		buy_order = bot.buy_order
+	end
+	if #buy_order ~= 0 then
+		local item = buy_order[1]
+		local cost = GetItemCost(item)
+
+		if bot.ref:GetGold() >= cost and not IsItemPurchasedFromSecretShop(item) then
+			print("Buying: " .. item)
+			bot.ref:ActionImmediate_PurchaseItem(item)
+			table.remove(buy_order, 1)
+		end
+	end
+
+	-- Use Courier
+	if GetNumCouriers() ~= 0 then
+		local courier = GetCourier(0)
+		local state = GetCourierState(courier)
+		if bot.ref:IsAlive()
+			and state ~= COURIER_STATE_DEAD
+			and state ~= COURIER_STATE_DELIVERING_ITEMS
+			and (bot.ref:GetStashValue() > 500 or bot.ref:GetCourierValue() > 0)
+		then
+			bot.ref:ActionImmediate_Courier(courier, COURIER_ACTION_TAKE_AND_TRANSFER_ITEMS
 		end
 	end
 end

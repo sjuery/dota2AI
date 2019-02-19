@@ -17,29 +17,21 @@ TALENT_6 = "special_bonus_cooldown_reduction_25"
 TALENT_7 = "special_bonus_unique_furion_3"
 TALENT_8 = "special_bonus_unique_furion"
 
-local abilityPriority = {
-	SKILL_E, SKILL_W, SKILL_E, SKILL_Q, SKILL_E, SKILL_R, SKILL_E, SKILL_W, SKILL_W, TALENT_1, SKILL_W, SKILL_R, SKILL_Q, SKILL_Q, TALENT_4, SKILL_Q, SKILL_R, TALENT_5, TALENT_7
+local ability_order = {
+	SKILL_E, SKILL_W, SKILL_E, SKILL_Q, SKILL_E,
+	SKILL_R, SKILL_E, SKILL_W, SKILL_W, TALENT_1,
+	SKILL_W, SKILL_R, SKILL_Q, SKILL_Q, TALENT_4,
+	SKILL_Q, SKILL_R, TALENT_5, TALENT_7
 }
 
 local bot = {
 	["ref"] = GetBot(),
 	["lane"] = GetStartingLane(1),
-	["retreat"] = 0
+	["retreat"] = 0,
+	["ability_order"] = ability_order
 }
 
-function UpgradeAbility(bot)
-	while bot.ref:GetAbilityPoints() > 0 do
-		local ability = bot.ref:GetAbilityByName(abilityPriority[1])
-		print("Upgrading")
-		if (ability:CanAbilityBeUpgraded() and ability:GetLevel() < ability:GetMaxLevel()) then
-			bot.ref:ActionImmediate_LevelAbility(abilityPriority[1])
-			table.remove(abilityPriority, 1)
-		end
-	end
-end
-
 function Think()
-	UpgradeAbility(bot)
 	UpdateBot(bot)
 	Thonk(bot, desires)
 end

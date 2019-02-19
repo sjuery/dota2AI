@@ -29,13 +29,6 @@ local buy_order = {
 	"item_hyperstone"
 };
 
-local bot = {
-	["ref"] = GetBot(),
-	["lane"] = GetStartingLane(0),
-	["retreat"] = 0,
-	["buy_order"] = buy_order
-}
-
 SKILL_Q = "terrorblade_reflection"
 SKILL_W = "terrorblade_conjure_image"
 SKILL_E = "terrorblade_metamorphosis"
@@ -50,27 +43,22 @@ TALENT_6 = "special_bonus_unique_terrorblade_2"
 TALENT_7 = "special_bonus_unique_terrorblade"
 TALENT_8 = "special_bonus_unique_terrorblade_3"
 
-local abilityPriority = {
+local ability_order = {
 	SKILL_E, SKILL_Q, SKILL_W, SKILL_Q, SKILL_Q,
 	SKILL_R, SKILL_Q, SKILL_E, SKILL_E, TALENT_2,
 	SKILL_E, SKILL_R, SKILL_W, SKILL_W, TALENT_4,
 	SKILL_W, SKILL_R, TALENT_6, TALENT_7
 }
 
-function UpgradeAbility(bot)
-	while bot.ref:GetAbilityPoints() > 0 do
-		local ability = bot.ref:GetAbilityByName(abilityPriority[1])
-
-		if (ability:CanAbilityBeUpgraded() and ability:GetLevel() < ability:GetMaxLevel()) then
-			bot.ref:ActionImmediate_LevelAbility(abilityPriority[1])
-			table.remove(abilityPriority, 1)
-		end
-	end
-end
+local bot = {
+	["ref"] = GetBot(),
+	["lane"] = GetStartingLane(0),
+	["retreat"] = 0,
+	["buy_order"] = buy_order,
+	["ability_order"] = ability_order
+}
 
 function Think()
-	print(bot.lane)
-	UpgradeAbility(bot)
 	UpdateBot(bot)
 	Thonk(bot, desires)
 end
