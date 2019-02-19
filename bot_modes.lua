@@ -1,51 +1,55 @@
 local function FarmDesire(bot)
-	local listAlliedCreeps = bot.ref:GetNearbyCreeps(1200, false)
-	local listEnemyCreeps = bot.ref:GetNearbyCreeps(1200, true)
-	local weakestFriendlyCreep, weakestEnemyCreep = unpack({nil, nil})
-	local lowestFriendlyHealth, lowestEnemyHealth = unpack({10000, 10000})
+	local allied_creeps = bot.ref:GetNearbyLaneCreeps(1000, false)
+	local enemy_creeps = bot.ref:GetNearbyLaneCreeps(1000, true)
+	local enemy_heroes = bot.ref:GetNearbyHeroes(900, true, BOT_MODE_NONE)
 
-	if #listAlliedCreeps == 0 and #listEnemyCreeps == 0 then
+	if #allied_creeps == 0 and #enemy_creeps == 0 then
 		return {10, nil}
 	end
 
-	for _, creep in pairs(listAlliedCreeps) do
-		if creep:GetHealth() then
-			if lowestFriendlyHealth > creep:GetHealth() then
-				weakestFriendlyCreep = creep
-				lowestFriendlyHealth = creep:GetHealth()
-			end
+	local weakest_friendly_creep = nil
+	local lowest_friendly_hp = 10000000
+	for i = 1, #allied_creeps do
+		local hp = allied_creeps[i]:GetHealth()
+		if hp and hp < lowest_friendly_hp then
+			weakest_friendly_creep = allied_creeps[i]
+			lowest_friendly_hp = hp
 		end
 	end
 
-	for _, creep in pairs(listEnemyCreeps) do
-		if creep:GetHealth() then
-			if lowestEnemyHealth > creep:GetHealth() then
-				weakestEnemyCreep = creep
-				lowestEnemyHealth = creep:GetHealth()
-			end
+	local weakest_enemy_creep = nil
+	local lowest_enemy_hp    = 10000000
+	for i = 1, #enemy_creeps do
+		local hp = enemy_creeps[i]:GetHealth()
+		if hp and hp < lowest_enemy_hp then
+			weakest_enemy_creep = enemy_creeps[i]
+			lowest_enemy_hp = hp
 		end
 	end
 
-	if #listEnemyCreeps ~= 0 and lowestEnemyHealth < bot.ref:GetEstimatedDamageToTarget(true, weakestEnemyCreep, bot.ref:GetAttackSpeed(), DAMAGE_TYPE_PHYSICAL) - 4 then
-		return {50, weakestEnemyCreep}
-	elseif #listAlliedCreeps ~= 0 and lowestFriendlyHealth < bot.ref:GetEstimatedDamageToTarget(true, weakestFriendlyCreep, bot.ref:GetAttackSpeed(), DAMAGE_TYPE_PHYSICAL) - 4 then
-		return {35, weakestFriendlyCreep}
-	elseif #listEnemyCreeps ~= 0 and lowestEnemyHealth < bot.ref:GetEstimatedDamageToTarget(true, weakestEnemyCreep, bot.ref:GetAttackSpeed(), DAMAGE_TYPE_PHYSICAL) * 2 and lowestEnemyHealth > bot.ref:GetEstimatedDamageToTarget(true, weakestEnemyCreep, bot.ref:GetAttackSpeed(), DAMAGE_TYPE_PHYSICAL) - 5 then
-		return {10, listEnemyCreeps[1]}
-	elseif #listEnemyCreeps ~= 0 then
-		return {35, listEnemyCreeps[1]}
+	if #enemy_creeps ~= 0
+		and lowest_enemy_hp < bot.ref:GetEstimatedDamageToTarget(true, weakest_enemy_creep, bot.ref:GetAttackSpeed(), DAMAGE_TYPE_PHYSICAL) - 1
+	then
+		return {50, weakest_enemy_creep}
+	elseif #allied_creeps ~= 0
+		and lowest_friendly_hp < bot.ref:GetEstimatedDamageToTarget(true, weakest_friendly_creep, bot.ref:GetAttackSpeed(), DAMAGE_TYPE_PHYSICAL) - 1
+	then
+		return {35, weakest_friendly_creep}
+	elseif #enemy_creeps ~= 0 and #enemy_heroes == 0 then
+		return {35, enemy_creeps[1]}
 	end
-	return {10, listEnemyCreeps[1]}
+	return {10, enemy_creeps[1]}
 end
 
-local function Farm(bot, value)
+local function Farm(bot, creep)
 	front = GetLaneFrontAmount(GetTeam(), bot.lane, false)
 	enemyfront = GetLaneFrontAmount(GetEnemyTeam(), bot.lane, false)
 	front = Min(front, enemyfront)
 	dest = GetLocationAlongLane(bot.lane, Min(1.0, front))
 	bot.ref:Action_MoveToLocation(dest)
-	bot.ref:Action_AttackUnit(value, true)
-	print("am farm")
+	if creep ~= nil then
+		bot.ref:Action_AttackUnit(creep, true)
+	end
 end
 
 
@@ -87,7 +91,7 @@ local function RetreatDesire(bot)
 
 	if #enemy_towers > 0
 		and #meatshield_creeps <= 2
-		and GetDistance(enemy_towers[1]:GetLocation(), bot.ref:GetLocation()) < 750
+		and GetDistance(enemy_towers[1]:GetLocation(), bot.location) < 750
 	then
 		return {70, DotaTime() + 5}
 	end
@@ -328,6 +332,57 @@ local generic_buy_order = {
 	"item_recipe_armlet"
 }
 
+local function ShopDesire(bot)
+	local buy_order = generic_buy_order
+	if bot.buy_order ~= nil then
+		buy_order = bot.buy_order
+	end
+	local item = buy_order[1]
+	if bot.ref:GetGold() < GetItemCost(item) - 10 then
+		return {0, nil}
+	end
+
+	local side_shop_pos = nil
+	if bot.lane == LANE_TOP then
+		side_shop_pos = SIDE_SHOP_TOP
+	else
+		side_shop_pos = SIDE_SHOP_BOT
+	end
+
+	local secret_shop_pos = nil
+	if GetDistance(bot.location, SECRET_SHOP_RADIANT) < GetDistance(bot.location, SECRET_SHOP_DIRE) then
+		secret_shop_pos = SECRET_SHOP_RADIANT
+	else
+		secret_shop_pos = SECRET_SHOP_DIRE
+	end
+
+	if IsItemPurchasedFromSideShop(item) and GetDistance(bot.location, side_shop_pos) < 3000 then
+		return {45, side_shop_pos}
+	elseif IsItemPurchasedFromSecretShop(item) and GetDistance(bot.location, secret_shop_pos) < 6000
+		and IsLocationVisible(secret_shop_pos) or IsLocationPassable(secret_shop_pos)
+	then
+		return {45, secret_shop_pos}
+	end
+
+	return {0, nil}
+end
+
+local function Shop(bot, shop_pos)
+	local buy_order = generic_buy_order
+	if bot.buy_order ~= nil then
+		buy_order = bot.buy_order
+	end
+	local item = buy_order[1]
+	bot.ref:Action_MoveToLocation(shop_pos)
+	if GetDistance(bot.location, shop_pos) < SHOP_USE_DISTANCE then
+		local buy_res = bot.ref:ActionImmediate_PurchaseItem(item)
+		if buy_res == PURCHASE_ITEM_SUCCESS then
+			print("Buying: " .. item .. "from shop")
+			table.remove(buy_order, 1)
+		end
+	end
+end
+
 local function UpKeep(bot)
 	-- Upgrade abilities
 	if bot.ability_order then
@@ -351,10 +406,22 @@ local function UpKeep(bot)
 		local item = buy_order[1]
 		local cost = GetItemCost(item)
 
-		if bot.ref:GetGold() >= cost and not IsItemPurchasedFromSecretShop(item) then
-			print("Buying: " .. item)
-			bot.ref:ActionImmediate_PurchaseItem(item)
-			table.remove(buy_order, 1)
+		local side_shop_pos = nil
+		if bot.lane == LANE_TOP then
+			side_shop_pos = SIDE_SHOP_TOP
+		else
+			side_shop_pos = SIDE_SHOP_BOT
+		end
+
+		if bot.ref:GetGold() >= cost
+			and not IsItemPurchasedFromSecretShop(item)
+			and not (IsItemPurchasedFromSideShop(item) and GetDistance(bot.location, side_shop_pos) < 3000)
+		then
+			local buy_res = bot.ref:ActionImmediate_PurchaseItem(item)
+			if buy_res == PURCHASE_ITEM_SUCCESS then
+				print("Buying: " .. item)
+				table.remove(buy_order, 1)
+			end
 			return
 		end
 	end
@@ -366,20 +433,43 @@ local function UpKeep(bot)
 		if bot.ref:IsAlive()
 			and state ~= COURIER_STATE_DEAD
 			and state ~= COURIER_STATE_DELIVERING_ITEMS
-			and (bot.ref:GetStashValue() > 500 or bot.ref:GetCourierValue() > 0)
+			and (bot.ref:GetStashValue() > 400 or bot.ref:GetCourierValue() > 0)
 		then
 			bot.ref:ActionImmediate_Courier(courier, COURIER_ACTION_TAKE_AND_TRANSFER_ITEMS)
 			return
 		end
 	end
-end
 
+	-- Move overflow items to main item slots
+	overflow_slot = nil
+	empty_slot = nil
+	for i = 0, 8 do
+		if empty_slot ~= nil and overflow_slot ~= nil then
+			break
+		end
+		local slot_type = bot.ref:GetItemSlotType(i)
+		local item = bot.ref:GetItemInSlot(i)
+		if slot_type == ITEM_SLOT_TYPE_BACKPACK and item ~= nil then
+			overflow_slot = i
+		elseif slot_type == ITEM_SLOT_TYPE_MAIN and item == nil then
+			empty_slot = i
+		end
+	end
+	if overflow_slot and empty_slot then
+		bot.ref:ActionImmediate_SwapItems(empty_slot, overflow_slot)
+		return
+	end
+
+	-- Sell laning items
+	--if empty_slot == nil then
+	--end
+end
 
 generic_desires = {
 	["farm"] = {FarmDesire, Farm},
 	["retreat"] = {RetreatDesire, Retreat},
 	["heal"] = {HealDesire, Heal},
---	["shop"] = {ShopDesire, Shop},
+	["shop"] = {ShopDesire, Shop},
 	["push"] = {PushDesire, Push},
 	["fight"] = {FightDesire, Fight},
 	["rune"] = {RuneDesire, Rune},
