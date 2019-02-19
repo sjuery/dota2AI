@@ -26,10 +26,10 @@ local function FarmDesire(bot)
 		end
 	end
 
-	if #listEnemyCreeps ~= 0 and lowestEnemyHealth < bot.ref:GetEstimatedDamageToTarget(true, weakestEnemyCreep, bot.ref:GetAttackSpeed(), DAMAGE_TYPE_PHYSICAL) - 5 then
+	if #listEnemyCreeps ~= 0 and lowestEnemyHealth < bot.ref:GetEstimatedDamageToTarget(true, weakestEnemyCreep, bot.ref:GetAttackSpeed(), DAMAGE_TYPE_PHYSICAL) - 4 then
 		return {50, weakestEnemyCreep}
-	elseif #listAlliedCreeps ~= 0 and lowestFriendlyHealth < bot.ref:GetEstimatedDamageToTarget(true, weakestFriendlyCreep, bot.ref:GetAttackSpeed(), DAMAGE_TYPE_PHYSICAL) - 5 then
-		return {40, weakestFriendlyCreep}
+	elseif #listAlliedCreeps ~= 0 and lowestFriendlyHealth < bot.ref:GetEstimatedDamageToTarget(true, weakestFriendlyCreep, bot.ref:GetAttackSpeed(), DAMAGE_TYPE_PHYSICAL) - 4 then
+		return {35, weakestFriendlyCreep}
 	elseif #listEnemyCreeps ~= 0 and lowestEnemyHealth < bot.ref:GetEstimatedDamageToTarget(true, weakestEnemyCreep, bot.ref:GetAttackSpeed(), DAMAGE_TYPE_PHYSICAL) * 2 and lowestEnemyHealth > bot.ref:GetEstimatedDamageToTarget(true, weakestEnemyCreep, bot.ref:GetAttackSpeed(), DAMAGE_TYPE_PHYSICAL) - 5 then
 		return {10, listEnemyCreeps[1]}
 	elseif #listEnemyCreeps ~= 0 then
@@ -51,12 +51,26 @@ end
 
 local function RetreatDesire(bot)
 	if bot.retreat > GameTime() then
-		return 100, 0
+		return {100, 0}
 	else
 		bot.retreat = 0;
 	end
-	nearAlliedCreep = bot.ref:GetNearbyCreeps(1200, false)
-	nearETowers = bot.ref:GetNearbyTowers(1200, true)
+	allied_creeps = bot.ref:GetNearbyCreeps(1600, false)
+	enemy_towers = bot.ref:GetNearbyTowers(1600, true)
+
+	local meatshield_creeps = {}
+	if #allied_creeps > 0 and #enemy_towers > 0 then
+		-- Search for nearby enemy heroes (Not under enemy towers)
+		for i = 1, #allied_creeps do
+			for i = 1, #enemy_towers do
+				if GetDistance(allied_creeps[i]:GetLocation(), enemy_towers[i]:GetLocation()) < 700 then
+					table.insert(meatshield_creeps, allied_creeps[i])
+				end
+			end
+		end
+	end
+	-- One day use meatshield creeps for tower aggro
+
 	if bot.hp_percent < 0.4 then
 		return {40, DotaTime() + 7}
 	elseif bot.hp_percent < 0.2 then
@@ -64,15 +78,18 @@ local function RetreatDesire(bot)
 	end
 
 	if bot.ref:WasRecentlyDamagedByCreep(1.0) then
-		return {50, DotaTime() + 3}
+		return {40, DotaTime() + 3}
 	end
 
 	if bot.ref:WasRecentlyDamagedByTower(1.0) then
-		return {100, DotaTime() + 5}
+		return {70, DotaTime() + 5}
 	end
 
-	if #nearETowers > 0 and #nearAlliedCreep <= 2 then
-		return {100, DotaTime() + 5}
+	if #enemy_towers > 0
+		and #meatshield_creeps <= 2
+		and GetDistance(enemy_towers[1]:GetLocation(), bot.ref:GetLocation()) < 750
+	then
+		return {70, DotaTime() + 5}
 	end
 	return {0, nil}
 end
@@ -82,41 +99,67 @@ local function Retreat(bot, value)
 	front = GetLaneFrontAmount(GetTeam(), bot.lane, false)
 	enemyfront = GetLaneFrontAmount(GetEnemyTeam(), bot.lane, false)
 	front = Min(front, enemyfront)
-	pos = GetLocationAlongLane(bot.lane, front - 0.05) + RandomVector(200)
+	pos = GetLocationAlongLane(bot.lane, front - 0.05) + RandomVector(50)
 	bot.ref:Action_MoveToLocation(pos)
 	print("am retreat")
 end
 
 local function PushDesire(bot)
-	local listNearbyETowers = bot.ref:GetNearbyTowers(1200, true)
-	local listAlliedCreeps = bot.ref:GetNearbyCreeps(1200, false)
-	local listEnemyCreeps = bot.ref:GetNearbyCreeps(1200, true)
+	local enemy_towers = bot.ref:GetNearbyTowers(1600, true)
+	local allied_creeps = bot.ref:GetNearbyCreeps(500, false)
+	local enemy_creeps = bot.ref:GetNearbyCreeps(1600, true)
 
-	if #listAlliedCreeps >= 2 and #listEnemyCreeps <= 2 then
-		return {45, listNearbyETowers[1]}
+	-- If help nearby or tower will die in two hits then we want to attack tower
+	if #enemy_towers > 0 and ((#allied_creeps >= 3 and #enemy_creeps <= 2)
+		or enemy_towers[1]:GetHealth() < bot.ref:GetEstimatedDamageToTarget(true, enemy_towers[1], bot.ref:GetAttackSpeed(), DAMAGE_TYPE_ALL) * 1.6)
+	then
+		return {40, enemy_towers[1]}
 	end
-	return {2, listNearbyETowers[1]}
+	return {2, enemy_towers[1]}
 end
 
-local function Push(bot, value)
+local function Push(bot, enemy_tower)
 	front = GetLaneFrontAmount(GetTeam(), bot.lane, false)
 	enemyfront = GetLaneFrontAmount(GetEnemyTeam(), bot.lane, false)
 	front = Min(front, enemyfront)
 	dest = GetLocationAlongLane(bot.lane, Min(1.0, front))
 	bot.ref:Action_MoveToLocation(dest)
-	bot.ref:Action_AttackUnit(value, true)
+	bot.ref:Action_AttackUnit(enemy_tower, true)
 end
 
 
 local function FightDesire(bot)
-	local listNearbyETowers = bot.ref:GetNearbyTowers(1200, true)
-	local listNearbyEHeroes = bot.ref:GetNearbyHeroes(1200, true, BOT_MODE_NONE)
-	local listNearbyAHeroes = bot.ref:GetNearbyHeroes(1200, false, BOT_MODE_NONE)
+	local enemy_heroes = bot.ref:GetNearbyHeroes(1000, true, BOT_MODE_NONE)
+	local heroes = bot.ref:GetNearbyHeroes(600, false, BOT_MODE_NONE)
 
-	if #listNearbyAHeroes >= #listNearbyEHeroes and #listNearbyEHeroes ~= 0 and #listNearbyETowers ~= 0 then
-		return {30, listNearbyEHeroes[1]}
+	local target = nil
+	if #enemy_heroes > 0 then
+		local towers = bot.ref:GetNearbyTowers(1600, true)
+
+		-- Search for nearby enemy heroes (Not under enemy towers)
+		for i = 1, #enemy_heroes do
+			local pos = enemy_heroes[i]:GetLocation()
+			if IsLocationVisible(pos) or IsLocationPassable(pos) then
+				for i = 1, #towers do
+					if GetDistance(pos, towers[i]:GetLocation()) > 900 then
+						target = enemy_heroes[i]
+						break
+					end
+				end
+				if #towers == 0 then
+					target = enemy_heroes[1]
+					break
+				end
+			end
+		end
 	end
-	return {5, listNearbyEHeroes[1]}
+
+	if target and #enemy_heroes <= #heroes then
+		return {30, target}
+	elseif target then
+		return {5, target}
+	end
+	return {0, nil}
 end
 
 local function Fight(bot, value)
@@ -145,14 +188,14 @@ local function Rune(bot, value)
 		end
 	else
 		if bot.lane == LANE_MID then
-			bot.ref:Action_MoveToLocation(GetRuneSpawnLocation(RUNE_BOUNTY_2))
-			bot.ref:Action_PickUpRune(RUNE_BOUNTY_2)
-		elseif bot.lane == LANE_TOP then
-			bot.ref:Action_MoveToLocation(GetRuneSpawnLocation(RUNE_BOUNTY_2) + Vector(-250, 1000))
-			bot.ref:Action_PickUpRune(RUNE_BOUNTY_2)
-		elseif bot.lane == LANE_BOT then
 			bot.ref:Action_MoveToLocation(GetRuneSpawnLocation(RUNE_BOUNTY_4))
 			bot.ref:Action_PickUpRune(RUNE_BOUNTY_4)
+		elseif bot.lane == LANE_TOP then
+			bot.ref:Action_MoveToLocation(GetRuneSpawnLocation(RUNE_BOUNTY_4) + Vector(-250, 1000))
+			bot.ref:Action_PickUpRune(RUNE_BOUNTY_4)
+		elseif bot.lane == LANE_BOT then
+			bot.ref:Action_MoveToLocation(GetRuneSpawnLocation(RUNE_BOUNTY_2))
+			bot.ref:Action_PickUpRune(RUNE_BOUNTY_2)
 		end
 	end
 	--print("am rune")
@@ -202,7 +245,7 @@ local function HealDesire(bot)
 	then
 		local trees = bot.ref:GetNearbyTrees(1000)
 		if #trees > 0 then
-			local towers = bot.ref:GetNearbyTowers(1599, true)
+			local towers = bot.ref:GetNearbyTowers(1600, true)
 			local tree = nil
 
 			-- Search for safe trees (Not under enemy towers)
@@ -210,8 +253,7 @@ local function HealDesire(bot)
 				local tree_pos = GetTreeLocation(trees[i])
 				if IsLocationVisible(tree_pos) or IsLocationPassable(tree_pos) then
 					for i = 1, #towers do
-						if GetDistance(tree_pos, towers[i]:GetLocation()) > 1300 then
-							print("Found viable tango tree!")
+						if GetDistance(tree_pos, towers[i]:GetLocation()) > 1200 then
 							tree = trees[i]
 							break
 						end
@@ -223,11 +265,9 @@ local function HealDesire(bot)
 				end
 			end
 			if tree ~= nil then
-				return {60, {tango, tree}}
+				return {50, {tango, tree}}
 			end
 		end
-
-
 	end
 
 	local clarity = items["item_clarity"]
@@ -263,8 +303,10 @@ local function Heal(bot, params)
 	local heal_item, heal_target = unpack(params)
 	local name = heal_item:GetName()
 	if string.find(name, "tango") ~= nil then
+		print("Using tango..")
 		bot.ref:Action_UseAbilityOnTree(heal_item, heal_target)
 	elseif name == "item_flask" or name == "item_clarity" then
+		print("Using.. " .. name)
 		bot.ref:Action_UseAbilityOnEntity(heal_item, heal_target)
 	end
 end
@@ -289,7 +331,7 @@ local generic_buy_order = {
 local function UpKeep(bot)
 	-- Upgrade abilities
 	if bot.ability_order then
-		while bot.ref:GetAbilityPoints() > 0 do
+		if bot.ref:GetAbilityPoints() > 0 then
 			local ability = bot.ref:GetAbilityByName(bot.ability_order[1])
 			print("Upgrading ability: " .. bot.ability_order[1])
 			if (ability:CanAbilityBeUpgraded() and ability:GetLevel() < ability:GetMaxLevel()) then
@@ -350,9 +392,7 @@ function Thonk(bot, desires)
 	local desire_mode = nil
 
 	for name, thonkage in pairs(desires) do
-		local thonk_result = thonkage[1](bot)
-		local desire = thonk_result[1]
-		local value = thonk_result[2]
+		local desire, value = unpack(thonkage[1](bot))
 		if desire > desire_best then
 			desire_best = desire
 			desire_value = value
