@@ -40,7 +40,8 @@ local bot = {
 	["ref"] = GetBot(),
 	["lane"] = GetStartingLane(1),
 	["retreat"] = 0,
-	["ability_order"] = ability_order
+	["ability_order"] = ability_order,
+	["buy_order"] = buy_order
 }
 
 function Think()

@@ -288,13 +288,14 @@ local generic_buy_order = {
 
 local function UpKeep(bot)
 	-- Upgrade abilities
-	if bot.ability_priority then
+	if bot.ability_order then
 		while bot.ref:GetAbilityPoints() > 0 do
-			local ability = bot.ref:GetAbilityByName(bot.ability_priority[1])
-			print("Upgrading ability: " .. bot.ability_priority[1])
+			local ability = bot.ref:GetAbilityByName(bot.ability_order[1])
+			print("Upgrading ability: " .. bot.ability_order[1])
 			if (ability:CanAbilityBeUpgraded() and ability:GetLevel() < ability:GetMaxLevel()) then
-				bot.ref:ActionImmediate_LevelAbility(bot.ability_priority[1])
-				table.remove(bot.ability_priority, 1)
+				bot.ref:ActionImmediate_LevelAbility(bot.ability_order[1])
+				table.remove(bot.ability_order, 1)
+				return
 			end
 		end
 	end
@@ -312,6 +313,7 @@ local function UpKeep(bot)
 			print("Buying: " .. item)
 			bot.ref:ActionImmediate_PurchaseItem(item)
 			table.remove(buy_order, 1)
+			return
 		end
 	end
 
@@ -324,7 +326,8 @@ local function UpKeep(bot)
 			and state ~= COURIER_STATE_DELIVERING_ITEMS
 			and (bot.ref:GetStashValue() > 500 or bot.ref:GetCourierValue() > 0)
 		then
-			bot.ref:ActionImmediate_Courier(courier, COURIER_ACTION_TAKE_AND_TRANSFER_ITEMS
+			bot.ref:ActionImmediate_Courier(courier, COURIER_ACTION_TAKE_AND_TRANSFER_ITEMS)
+			return
 		end
 	end
 end

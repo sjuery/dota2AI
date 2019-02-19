@@ -7,7 +7,7 @@ local buy_order = {
 	"item_courier",
 	"item_tango",
 	"item_tango",
-	"item_branches"
+	"item_branches",
 	"item_clarity",
 	"item_stout_shield",
 	"item_quelling_blade",
@@ -15,7 +15,7 @@ local buy_order = {
 	"item_sobi_mask",
 	"item_boots",
 	"item_energy_booster"
-};
+}
 
 SKILL_Q = "omniknight_purification"
 SKILL_W = "omniknight_repel"
