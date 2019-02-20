@@ -67,7 +67,7 @@ local function RetreatDesire(bot)
 		-- Search for nearby enemy heroes (Not under enemy towers)
 		for i = 1, #allied_creeps do
 			for i = 1, #enemy_towers do
-				if GetDistance(allied_creeps[i]:GetLocation(), enemy_towers[i]:GetLocation()) < 700 then
+				if GetUnitToUnitDistance(allied_creeps[i], enemy_towers[i]) < 700 then
 					table.insert(meatshield_creeps, allied_creeps[i])
 				end
 			end
@@ -82,7 +82,7 @@ local function RetreatDesire(bot)
 	end
 
 	if bot.ref:WasRecentlyDamagedByCreep(1.0) then
-		return {40, DotaTime() + 3}
+		return {40, DotaTime() + 6}
 	end
 
 	if bot.ref:WasRecentlyDamagedByTower(1.0) then
@@ -91,7 +91,7 @@ local function RetreatDesire(bot)
 
 	if #enemy_towers > 0
 		and #meatshield_creeps <= 2
-		and GetDistance(enemy_towers[1]:GetLocation(), bot.location) < 750
+		and GetUnitToUnitDistance(enemy_towers[1], bot.ref) < 800
 	then
 		return {70, DotaTime() + 5}
 	end
@@ -114,11 +114,12 @@ local function PushDesire(bot)
 	local enemy_creeps = bot.ref:GetNearbyCreeps(1600, true)
 
 	-- If help nearby or tower will die in two hits then we want to attack tower
-	if #enemy_towers > 0 and ((#allied_creeps >= 3 and #enemy_creeps <= 2)
-		or enemy_towers[1]:GetHealth() < bot.ref:GetEstimatedDamageToTarget(true, enemy_towers[1], bot.ref:GetAttackSpeed(), DAMAGE_TYPE_ALL) * 1.6)
-	then
+	if #enemy_towers > 0 and #allied_creeps >= 3 and #enemy_creeps <= 2 then
 		return {40, enemy_towers[1]}
 	end
+	if #enemy_towers > 0 and enemy_towers[1]:GetHealth() < bot.ref:GetEstimatedDamageToTarget(true, enemy_towers[1], bot.ref:GetAttackSpeed(), DAMAGE_TYPE_ALL) * 1.5 then
+		return {60, enemy_towers[1]}
+	end		
 	return {2, enemy_towers[1]}
 end
 
@@ -337,10 +338,11 @@ local function ShopDesire(bot)
 	if bot.buy_order ~= nil then
 		buy_order = bot.buy_order
 	end
-	local item = buy_order[1]
-	if bot.ref:GetGold() < GetItemCost(item) - 10 then
+
+	if #buy_order == 0 or bot.ref:GetGold() < GetItemCost(buy_order[1]) - 10 then
 		return {0, nil}
 	end
+	local item = buy_order[1]
 
 	local side_shop_pos = nil
 	if bot.lane == LANE_TOP then
@@ -350,15 +352,15 @@ local function ShopDesire(bot)
 	end
 
 	local secret_shop_pos = nil
-	if GetDistance(bot.location, SECRET_SHOP_RADIANT) < GetDistance(bot.location, SECRET_SHOP_DIRE) then
+	if GetUnitToLocationDistance(bot.ref, SECRET_SHOP_RADIANT) < GetUnitToLocationDistance(bot.ref, SECRET_SHOP_DIRE) then
 		secret_shop_pos = SECRET_SHOP_RADIANT
 	else
 		secret_shop_pos = SECRET_SHOP_DIRE
 	end
 
-	if IsItemPurchasedFromSideShop(item) and GetDistance(bot.location, side_shop_pos) < 3000 then
+	if IsItemPurchasedFromSideShop(item) and GetUnitToLocationDistance(bot.ref, side_shop_pos) < 3000 then
 		return {45, side_shop_pos}
-	elseif IsItemPurchasedFromSecretShop(item) and GetDistance(bot.location, secret_shop_pos) < 6000
+	elseif IsItemPurchasedFromSecretShop(item) and GetUnitToLocationDistance(bot.ref, secret_shop_pos) < 6000
 		and IsLocationVisible(secret_shop_pos) or IsLocationPassable(secret_shop_pos)
 	then
 		return {45, secret_shop_pos}
@@ -374,7 +376,7 @@ local function Shop(bot, shop_pos)
 	end
 	local item = buy_order[1]
 	bot.ref:Action_MoveToLocation(shop_pos)
-	if GetDistance(bot.location, shop_pos) < SHOP_USE_DISTANCE then
+	if GetUnitToLocationDistance(bot.ref, shop_pos) < SHOP_USE_DISTANCE then
 		local buy_res = bot.ref:ActionImmediate_PurchaseItem(item)
 		if buy_res == PURCHASE_ITEM_SUCCESS then
 			print("Buying: " .. item .. "from shop")
@@ -415,27 +417,13 @@ local function UpKeep(bot)
 
 		if bot.ref:GetGold() >= cost
 			and not IsItemPurchasedFromSecretShop(item)
-			and not (IsItemPurchasedFromSideShop(item) and GetDistance(bot.location, side_shop_pos) < 3000)
+			and not (IsItemPurchasedFromSideShop(item) and GetUnitToLocationDistance(bot.ref, side_shop_pos) < 3000)
 		then
 			local buy_res = bot.ref:ActionImmediate_PurchaseItem(item)
 			if buy_res == PURCHASE_ITEM_SUCCESS then
 				print("Buying: " .. item)
 				table.remove(buy_order, 1)
 			end
-			return
-		end
-	end
-
-	-- Use Courier
-	if GetNumCouriers() ~= 0 then
-		local courier = GetCourier(0)
-		local state = GetCourierState(courier)
-		if bot.ref:IsAlive()
-			and state ~= COURIER_STATE_DEAD
-			and state ~= COURIER_STATE_DELIVERING_ITEMS
-			and (bot.ref:GetStashValue() > 400 or bot.ref:GetCourierValue() > 0)
-		then
-			bot.ref:ActionImmediate_Courier(courier, COURIER_ACTION_TAKE_AND_TRANSFER_ITEMS)
 			return
 		end
 	end
@@ -460,9 +448,38 @@ local function UpKeep(bot)
 		return
 	end
 
+	-- Use Courier
+	if GetNumCouriers() ~= 0 then
+		local courier = GetCourier(0)
+		local state = GetCourierState(courier)
+		if bot.ref:IsAlive()
+			and state ~= COURIER_STATE_DEAD
+			and state ~= COURIER_STATE_DELIVERING_ITEMS
+			and (bot.ref:GetStashValue() > 400 or bot.ref:GetCourierValue() > 0)
+		then
+			bot.ref:ActionImmediate_Courier(courier, COURIER_ACTION_TAKE_AND_TRANSFER_ITEMS)
+			return
+		end
+	end
+
+	items = GetItems(bot)
 	-- Sell laning items
-	--if empty_slot == nil then
-	--end
+	if DotaTime() > 750 and empty_slot == nil
+		and items["item_stout_shield"] or items["item_quelling_blade"]
+		and bot.ref:DistanceFromFountain() < SHOP_USE_DISTANCE
+		or GetUnitToLocationDistance(bot.ref, SIDE_SHOP_TOP) < SHOP_USE_DISTANCE
+		or GetUnitToLocationDistance(bot.ref, SIDE_SHOP_BOT) < SHOP_USE_DISTANCE
+		or GetUnitToLocationDistance(bot.ref, SECRET_SHOP_RADIANT) < SHOP_USE_DISTANCE
+		or GetUnitToLocationDistance(bot.ref, SECRET_SHOP_DIRE) < SHOP_USE_DISTANCE
+	then
+		if items["item_quelling_blade"] then
+			bot.ref:ActionImmediate_SellItem(items["item_quelling_blade"])
+			return
+		elseif items["item_stout_shield"] then
+			bot.ref:ActionImmediate_SellItem(items["item_stout_shield"])
+			return
+		end
+	end
 end
 
 generic_desires = {
