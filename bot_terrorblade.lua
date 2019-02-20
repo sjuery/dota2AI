@@ -4,7 +4,6 @@ require(GetScriptDirectory() .. "/utility")
 local desires = DeepCopy(generic_desires)
 
 local buy_order = {
-	"item_courier",
 	"item_tango",
 	"item_tango",
 	"item_tango",
@@ -27,7 +26,7 @@ local buy_order = {
 	"item_recipe_manta",
 	"item_hyperstone",
 	"item_hyperstone"
-};
+}
 
 SKILL_Q = "terrorblade_reflection"
 SKILL_W = "terrorblade_conjure_image"

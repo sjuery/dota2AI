@@ -12,8 +12,12 @@ local buy_order = {
 	"item_energy_booster",
 	"item_chainmail",
 	"item_robe",
-	"item_broadsword"
-};
+	"item_broadsword",
+	"item_ogre_axe",
+	"item_point_booster",
+	"item_blade_of_alacrity",
+	"item_staff_of_wizardry"
+}
 
 SKILL_Q = "abyssal_underlord_firestorm"
 SKILL_W = "abyssal_underlord_pit_of_malice"
