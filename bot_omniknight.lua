@@ -46,7 +46,39 @@ local bot = {
 	["ability_order"] = ability_order
 }
 
+function desireQ(bot)
+	local abilityQ = bot.ref:GetAbilityByName(SKILL_Q)
+	local friendlyHeroes = bot.ref:GetNearbyHeroes(1600, false, BOT_MODE_NONE)
+	local lowestHealth = 100000
+	local lowestAlly = nil
+
+	if bot.ref:IsChanneling() or bot.ref:IsUsingAbility() or abilityQ:GetManaCost() >= bot.mp_current or #friendlyHeroes == 0 or abilityQ:IsCooldownReady() == false then
+		return
+	end
+
+	for i = 1, #friendlyHeroes do
+		if lowestHealth > friendlyHeroes[i]:GetHealth() then
+			lowestHealth = friendlyHeroes[i]:GetHealth()
+			lowestAlly = friendlyHeroes[i]
+		end
+	end
+
+	if ((bot.hp_max - bot.hp_current) < 300) and (lowestAlly:GetMaxHealth() - lowestHealth) < 300 then
+		return
+	end
+
+	if lowestAlly == nil then
+		bot.ref:Action_UseAbilityOnEntity(abilityQ, bot.ref)
+	end
+
+	if GetUnitToUnitDistance(bot.ref, lowestAlly) >= 400 then
+		bot.ref:Action_MoveToLocation(lowestAlly)
+	end
+	bot.ref:Action_UseAbilityOnEntity(abilityQ, lowestAlly)
+end
+
 function Think()
 	UpdateBot(bot)
 	Thonk(bot, desires)
+	desireQ(bot)
 end
