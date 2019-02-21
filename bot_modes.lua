@@ -4,7 +4,7 @@ require(GetScriptDirectory() .. "/utility")
 local function FarmDesire(bot)
 	local allied_creeps = bot.ref:GetNearbyLaneCreeps(1000, false)
 	local enemy_creeps = bot.ref:GetNearbyLaneCreeps(1000, true)
-	local enemy_heroes = bot.ref:GetNearbyHeroes(900, true, BOT_MODE_NONE)
+	local enemy_heroes = bot.ref:GetNearbyHeroes(1200, true, BOT_MODE_NONE)
 
 	if #allied_creeps == 0 and #enemy_creeps == 0 then
 		return {10, nil}
@@ -63,6 +63,7 @@ local function RetreatDesire(bot)
 		bot.retreat = 0;
 	end
 	allied_creeps = bot.ref:GetNearbyLaneCreeps(1600, false)
+	enemy_creeps = bot.ref:GetNearbyLaneCreeps(800, false)
 	enemy_towers = bot.ref:GetNearbyTowers(1600, true)
 
 	local meatshield_creeps = {}
@@ -84,7 +85,7 @@ local function RetreatDesire(bot)
 		return {55, DotaTime() + 10}
 	end
 
-	if bot.ref:WasRecentlyDamagedByCreep(1.0) then
+	if bot.ref:WasRecentlyDamagedByCreep(1.0) and #enemy_creeps > 1 then
 		return {40, DotaTime() + 6}
 	end
 
@@ -163,8 +164,11 @@ local function FightDesire(bot)
 		end
 	end
 
-	if target and #enemy_heroes <= #heroes then
+	-- Plus one to count ourself
+	if target and #heroes + 1 == #enemy_heroes then
 		return {30, target}
+	elseif target #heroes + 1 > #enemy_heroes then
+		return {45, target}
 	elseif target then
 		return {5, target}
 	end
@@ -466,4 +470,5 @@ function Thonk(bot, desires)
 	print(bot.ref:GetUnitName() .. ": " .. desire_name)
 	desire_mode(bot, desire_value)
 	UpKeep(bot)
+	return desire_name
 end
