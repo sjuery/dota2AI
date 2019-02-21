@@ -78,6 +78,7 @@ function desireQ(bot)
 end
 
 function Think()
+	-- print("am omni am going " .. bot.lane)
 	UpdateBot(bot)
 	Thonk(bot, desires)
 	desireQ(bot)

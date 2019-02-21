@@ -59,9 +59,8 @@ end
 local function RetreatDesire(bot)
 	if bot.retreat > GameTime() then
 		return {100, 0}
-	else
-		bot.retreat = 0;
 	end
+
 	allied_creeps = bot.ref:GetNearbyLaneCreeps(1600, false)
 	enemy_creeps = bot.ref:GetNearbyLaneCreeps(800, false)
 	enemy_towers = bot.ref:GetNearbyTowers(1600, true)
@@ -103,12 +102,7 @@ local function RetreatDesire(bot)
 end
 
 local function Retreat(bot, value)
-	bot.retreat = bot.retreat + value
-	front = GetLaneFrontAmount(GetTeam(), bot.lane, false)
-	enemyfront = GetLaneFrontAmount(GetEnemyTeam(), bot.lane, false)
-	front = Min(front, enemyfront)
-	pos = GetLocationAlongLane(bot.lane, front - 0.05) + RandomVector(50)
-	bot.ref:Action_MoveToLocation(pos)
+	bot.ref:Action_MoveToLocation(ClosestRetreatTower(bot):GetLocation())
 end
 
 local function PushDesire(bot)

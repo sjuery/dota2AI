@@ -8,7 +8,6 @@ carry_pool = {
 
 hero_pool = {
 	"npc_dota_hero_abaddon",
-	"npc_dota_hero_abyssal_underlord",
 	"npc_dota_hero_alchemist",
 	"npc_dota_hero_antimage",
 	"npc_dota_hero_ancient_apparition",
@@ -56,7 +55,6 @@ hero_pool = {
 	"npc_dota_hero_life_stealer",
 	"npc_dota_hero_lina",
 	"npc_dota_hero_lion",
-	"npc_dota_hero_lone_druid",
 	"npc_dota_hero_luna",
 	"npc_dota_hero_lycan",
 	"npc_dota_hero_magnataur",
@@ -66,12 +64,10 @@ hero_pool = {
 	"npc_dota_hero_morphling",
 	"npc_dota_hero_monkey_king",
 	"npc_dota_hero_naga_siren",
-	"npc_dota_hero_furion", -- Natures prophet
 	"npc_dota_hero_necrolyte",
 	"npc_dota_hero_night_stalker",
 	"npc_dota_hero_nyx_assassin",
 	"npc_dota_hero_ogre_magi",
-	"npc_dota_hero_omniknight",
 	"npc_dota_hero_oracle",
 	"npc_dota_hero_obsidian_destroyer", -- Outworld Devourer
 	"npc_dota_hero_phantom_assassin",
@@ -99,7 +95,6 @@ hero_pool = {
 	"npc_dota_hero_sven",
 	"npc_dota_hero_techies",
 	"npc_dota_hero_templar_assassin",
-	"npc_dota_hero_terrorblade",
 	"npc_dota_hero_tidehunter",
 	"npc_dota_hero_shredder",
 	"npc_dota_hero_tinker",
@@ -124,7 +119,7 @@ hero_pool = {
 
 picked_hero = {}
 
-math.randomseed(1268)
+math.randomseed(RealTime())
 
 function Think()
 	if GetHeroPickState() == HEROPICK_STATE_CM_CAPTAINPICK then	
@@ -146,7 +141,7 @@ function BansHero()
 	if not IsPlayerInHeroSelectionControl(GetCMCaptain()) then
 		return
 	end
-	heroToBan = hero_pool[math.random(112)]
+	heroToBan = hero_pool[math.random(108)]
 	if IsCMBannedHero(heroToBan) == 1 or IsCMPickedHero(TEAM_RADIANT, heroToBan) == 1 or IsCMPickedHero(TEAM_DIRE, heroToBan) == 1 then
 		BansHero()
 	else
