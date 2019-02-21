@@ -3,6 +3,24 @@ require(GetScriptDirectory() .. "/utility")
 
 local desires = DeepCopy(generic_desires)
 
+local bear_items = {
+	"item_stout_shield",
+	"item_boots",
+	"item_orb_of_venom",
+	"item_blight_stone"
+}
+
+local buy_order = {
+	"item_tango",
+	"item_flask",
+	"item_quelling_blade",
+	"item_tango",
+	"item_boots",
+	"item_ring_of_regen",
+	"item_wind_lace"
+	-- Hammer time
+}
+
 SKILL_Q = "lone_druid_spirit_bear"
 SKILL_W = "lone_druid_spirit_link"
 SKILL_E = "lone_druid_savage_roar"
@@ -28,6 +46,7 @@ local bot = {
 	["ref"] = GetBot(),
 	["lane"] = LANE_MID,
 	["retreat"] = 0,
+	["buy_order"] = buy_order,
 	["ability_order"] = ability_order
 }
 

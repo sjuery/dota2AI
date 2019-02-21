@@ -26,8 +26,8 @@ function UpdateBot(bot)
 	bot.hp_max = bot.ref:GetMaxHealth()
 	bot.hp_current =  bot.ref:GetHealth()
 	bot.hp_percent = bot.hp_current / bot.hp_max
-	bot.mp_max = bot.ref:GetMana()
-	bot.mp_current = bot.ref:GetMaxMana()
+	bot.mp_max = bot.ref:GetMaxMana()
+	bot.mp_current = bot.ref:GetMana()
 	bot.mp_percent = bot.mp_current / bot.mp_max
 	bot.location = bot.ref:GetLocation()
 end
@@ -76,7 +76,7 @@ function GetStartingLane(lane)
     return LANE_TOP
 end
 
-SHOP_USE_DISTANCE = 200
+SHOP_USE_DISTANCE = 150
 SHOP_TYPE_NONE = 0
 SHOP_TYPE_SECRET = 1
 SHOP_TYPE_SIDE = 2

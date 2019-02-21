@@ -10,20 +10,26 @@ local buy_order = {
 	"item_flask",
 	"item_stout_shield",
 	"item_quelling_blade",
+	-- Wraith band
 	"item_circlet",
 	"item_slippers",
 	"item_recipe_wraith_band",
+	-- Power Treads
 	"item_boots",
 	"item_boots_of_elves",
 	"item_gloves",
+	-- Dragon lance
 	"item_boots_of_elves",
 	"item_boots_of_elves",
 	"item_ogre_axe",
+	-- Yasha
 	"item_boots_of_elves",
 	"item_blade_of_alacrity",
 	"item_recipe_yasha",
+	-- Manta Style
 	"item_ultimate_orb",
 	"item_recipe_manta",
+	-- Moonshard
 	"item_hyperstone",
 	"item_hyperstone"
 }
@@ -59,11 +65,9 @@ local bot = {
 
 function desireQ(bot)
 	local abilityQ = bot.ref:GetAbilityByName(SKILL_Q)
-	local listEnemyHeroes = bot.ref:GetNearbyHeroes(900, true, BOT_MODE_NONE)
+	local enemy_heroes = bot.ref:GetNearbyHeroes(900, true, BOT_MODE_NONE)
 
-	print("wanna Q")
-	print(abilityQ:IsCooldownReady())
-	if bot.ref:IsChanneling() or bot.ref:IsUsingAbility() or abilityQ:GetManaCost() >= bot.mp_current or #listEnemyHeroes == 0 or abilityQ:IsCooldownReady() == false then
+	if bot.ref:IsChanneling() or bot.ref:IsUsingAbility() or abilityQ:GetManaCost() >= bot.mp_current or #enemy_heroes == 0 or abilityQ:IsCooldownReady() == false then
 		return
 	end
 	bot.ref:Action_UseAbility(abilityQ)

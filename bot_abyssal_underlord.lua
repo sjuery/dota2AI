@@ -8,11 +8,14 @@ local buy_order = {
 	"item_tango",
 	"item_tango",
 	"item_stout_shield",
+	-- Mage boots
 	"item_boots",
 	"item_energy_booster",
+	-- Blade mail
 	"item_chainmail",
 	"item_robe",
 	"item_broadsword",
+	-- Scepter
 	"item_ogre_axe",
 	"item_point_booster",
 	"item_blade_of_alacrity",
@@ -50,47 +53,47 @@ local bot = {
 
 function desireQ(bot)
 	local abilityQ = bot.ref:GetAbilityByName(SKILL_Q)
-	local listEnemyCreeps = bot.ref:GetNearbyCreeps(1200, true)
-	local listEnemyHeroes = bot.ref:GetNearbyHeroes(1200, true, BOT_MODE_NONE)
+	local enemy_creeps = bot.ref:GetNearbyLaneCreeps(1200, true)
+	local enemy_heroes = bot.ref:GetNearbyHeroes(1200, true, BOT_MODE_NONE)
 
 	if bot.ref:IsChanneling() or bot.ref:IsUsingAbility() then
 		return
 	end
 
-	if #listEnemyCreeps + #listEnemyHeroes >= 2 then
-		if #listEnemyCreeps > 2 then
-			bot.ref:Action_UseAbilityOnLocation(abilityQ, listEnemyCreeps[1]:GetLocation())
-		elseif #listEnemyHeroes > 0 then
-			bot.ref:Action_UseAbilityOnLocation(abilityQ, listEnemyHeroes[1]:GetLocation())
+	if #enemy_creeps + #enemy_heroes >= 2 then
+		if #enemy_creeps > 2 then
+			bot.ref:Action_UseAbilityOnLocation(abilityQ, enemy_creeps[1]:GetLocation())
+		elseif #enemy_heroes > 0 then
+			bot.ref:Action_UseAbilityOnLocation(abilityQ, enemy_heroes[1]:GetLocation())
 		end
 	end
 end
 
 function desireW(bot)
 	local abilityW = bot.ref:GetAbilityByName(SKILL_W)
-	local listEnemyCreeps = bot.ref:GetNearbyCreeps(1200, true)
-	local listEnemyHeroes = bot.ref:GetNearbyHeroes(1200, true, BOT_MODE_NONE)
+	local enemy_creeps = bot.ref:GetNearbyLaneCreeps(1200, true)
+	local enemy_heroes = bot.ref:GetNearbyHeroes(1200, true, BOT_MODE_NONE)
 
 	if bot.ref:IsChanneling() or bot.ref:IsUsingAbility() then
 		return
 	end
 
-	if #listEnemyCreeps + #listEnemyHeroes >= 1 then
-		if #listEnemyCreeps > 2 then
-			bot.ref:Action_UseAbilityOnLocation(abilityW, listEnemyCreeps[1]:GetLocation())
-		elseif #listEnemyHeroes > 0 then
-			bot.ref:Action_UseAbilityOnLocation(abilityW, listEnemyHeroes[1]:GetLocation())
+	if #enemy_creeps + #enemy_heroes >= 1 then
+		if #enemy_creeps > 2 then
+			bot.ref:Action_UseAbilityOnLocation(abilityW, enemy_creeps[1]:GetLocation())
+		elseif #enemy_heroes > 0 then
+			bot.ref:Action_UseAbilityOnLocation(abilityW, enemy_heroes[1]:GetLocation())
 		end
 	end
 end
 
-function customFarm(bot)
+function customFarm(bot, creep)
 	front = GetLaneFrontAmount(GetTeam(), bot.lane, false)
 	enemyfront = GetLaneFrontAmount(GetEnemyTeam(), bot.lane, false)
 	front = Min(front, enemyfront)
 	dest = GetLocationAlongLane(bot.lane, Min(1.0, front))
 	bot.ref:Action_MoveToLocation(dest)
-	bot.ref:Action_AttackUnit(value, true)
+	bot.ref:Action_AttackUnit(creep, true)
 	desireQ(bot)
 	desireW(bot)
 end

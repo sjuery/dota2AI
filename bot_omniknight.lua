@@ -72,7 +72,7 @@ function desireQ(bot)
 	end
 
 	if GetUnitToUnitDistance(bot.ref, lowestAlly) >= 400 then
-		bot.ref:Action_MoveToLocation(lowestAlly)
+		bot.ref:Action_MoveToLocation(lowestAlly:GetLocation())
 	end
 	bot.ref:Action_UseAbilityOnEntity(abilityQ, lowestAlly)
 end

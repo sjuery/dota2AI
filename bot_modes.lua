@@ -1,3 +1,6 @@
+require(GetScriptDirectory() .. "/upkeep")
+require(GetScriptDirectory() .. "/utility")
+
 local function FarmDesire(bot)
 	local allied_creeps = bot.ref:GetNearbyLaneCreeps(1000, false)
 	local enemy_creeps = bot.ref:GetNearbyLaneCreeps(1000, true)
@@ -28,11 +31,11 @@ local function FarmDesire(bot)
 	end
 
 	if #enemy_creeps ~= 0
-		and lowest_enemy_hp < bot.ref:GetEstimatedDamageToTarget(true, weakest_enemy_creep, bot.ref:GetAttackSpeed(), DAMAGE_TYPE_PHYSICAL) - 1
+		and lowest_enemy_hp < bot.ref:GetEstimatedDamageToTarget(true, weakest_enemy_creep, bot.ref:GetAttackSpeed(), DAMAGE_TYPE_PHYSICAL) - 5
 	then
 		return {50, weakest_enemy_creep}
 	elseif #allied_creeps ~= 0
-		and lowest_friendly_hp < bot.ref:GetEstimatedDamageToTarget(true, weakest_friendly_creep, bot.ref:GetAttackSpeed(), DAMAGE_TYPE_PHYSICAL) - 1
+		and lowest_friendly_hp < bot.ref:GetEstimatedDamageToTarget(true, weakest_friendly_creep, bot.ref:GetAttackSpeed(), DAMAGE_TYPE_PHYSICAL) - 5
 	then
 		return {35, weakest_friendly_creep}
 	elseif #enemy_creeps ~= 0 and #enemy_heroes == 0 then
@@ -105,7 +108,6 @@ local function Retreat(bot, value)
 	front = Min(front, enemyfront)
 	pos = GetLocationAlongLane(bot.lane, front - 0.05) + RandomVector(50)
 	bot.ref:Action_MoveToLocation(pos)
-	print("am retreat")
 end
 
 local function PushDesire(bot)
@@ -117,7 +119,7 @@ local function PushDesire(bot)
 	if #enemy_towers > 0 and #allied_creeps >= 3 and #enemy_creeps <= 2 then
 		return {40, enemy_towers[1]}
 	end
-	if #enemy_towers > 0 and enemy_towers[1]:GetHealth() < bot.ref:GetEstimatedDamageToTarget(true, enemy_towers[1], bot.ref:GetAttackSpeed(), DAMAGE_TYPE_ALL) * 1.5 then
+	if #enemy_towers > 0 and enemy_towers[1]:GetHealth() < bot.ref:GetEstimatedDamageToTarget(true, enemy_towers[1], bot.ref:GetAttackSpeed(), DAMAGE_TYPE_PHYSICAL) then
 		return {60, enemy_towers[1]}
 	end		
 	return {2, enemy_towers[1]}
@@ -153,8 +155,10 @@ local function FightDesire(bot)
 				end
 				if #towers == 0 then
 					target = enemy_heroes[1]
-					break
 				end
+			end
+			if target then
+				break
 			end
 		end
 	end
@@ -174,12 +178,46 @@ end
 
 local function RuneDesire(bot)
 	if DotaTime() <= 0.3 then
-		return {20, 1}
+		return {20, nil}
+	end
+
+	local runes = {
+		RUNE_POWERUP_1,
+		RUNE_POWERUP_2,
+		RUNE_BOUNTY_1,
+		RUNE_BOUNTY_2,
+		RUNE_BOUNTY_3,
+		RUNE_BOUNTY_4
+	}
+
+	local closest_rune_dist = 10000000
+	local closest_rune = nil
+	for i = 1, #runes do
+		rune_pos = GetRuneSpawnLocation(runes[i])
+		local rune_dist = GetUnitToLocationDistance(bot.ref, rune_pos)
+		if IsLocationPassable(rune_pos)
+			and rune_dist < closest_rune_dist and rune_dist < 3000
+			and GetRuneStatus(runes[i]) == RUNE_STATUS_AVAILABLE
+		then
+			closest_rune = runes[i]
+			closest_rune_dist = rune_dist
+		end
+	end
+	if closest_rune_dist < 800 then
+		return {65, closest_rune}
+	elseif closest_rune then
+		return {55, closest_rune}
 	end
 	return {1, nil}
 end
 
-local function Rune(bot, value)
+local function Rune(bot, rune)
+	if rune ~= nil then
+		--bot.ref:Action_MoveDirectly(GetRuneSpawnLocation(rune))
+		bot.ref:Action_PickUpRune(rune)
+		print("Trying to get bounty rune..")
+		return
+	end
 	if GetTeam() == TEAM_RADIANT then
 		if bot.lane == LANE_MID then
 			bot.ref:Action_MoveToLocation(GetRuneSpawnLocation(RUNE_BOUNTY_3))
@@ -203,7 +241,6 @@ local function Rune(bot, value)
 			bot.ref:Action_PickUpRune(RUNE_BOUNTY_2)
 		end
 	end
-	--print("am rune")
 end
 
 
@@ -251,8 +288,8 @@ local function HealDesire(bot)
 		local trees = bot.ref:GetNearbyTrees(1000)
 		if #trees > 0 then
 			local towers = bot.ref:GetNearbyTowers(1600, true)
-			local tree = nil
 
+			local tree = nil
 			-- Search for safe trees (Not under enemy towers)
 			for i = 1, #trees do
 				local tree_pos = GetTreeLocation(trees[i])
@@ -265,8 +302,10 @@ local function HealDesire(bot)
 					end
 					if #towers == 0 then
 						tree = trees[1]
-						break
 					end
+				end
+				if tree then
+					break
 				end
 			end
 			if tree ~= nil then
@@ -284,28 +323,39 @@ local function HealDesire(bot)
 		return {60, {clarity, bot.ref}}
 	end
 
-	-- local shrines = {
-	-- 	SHRINE_BASE_1,
-	-- 	SHRINE_BASE_2,
-	-- 	SHRINE_BASE_3,
-	-- 	SHRINE_BASE_4,
-	-- 	SHRINE_BASE_5,
-	-- 	SHRINE_JUNGLE_1,
-	-- 	SHRINE_JUNGLE_2
-	-- }
-	-- local team = GetTeam()
-	-- local shrine_dist = 100000
-	-- for i = 1, #shrines do
-	-- 	local shrine = GetShrine(team, shrines[i])
-	-- 	GetShrineCooldown()
-	-- 	IsShrineHealing()
-	-- end
+	local shrines = {
+		SHRINE_JUNGLE_1,
+		SHRINE_JUNGLE_2
+	}
+	local team = GetTeam()
+	local shrine_dist = 100000
+	for i = 1, #shrines do
+		local shrine = GetShrine(team, shrines[i])
+		local distance = GetUnitToUnitDistance(bot.ref, shrine)
+		if shrine:GetHealth() > 0 then
+			if (distance < 3000 and not (GetShrineCooldown(shrine) > 1)
+				and (bot.mp_max - bot.mp_current > 250 or bot.hp_max - bot.hp_current > 400 or bot.hp_percent < 0.33))
+				or (distance < 1000 and IsShrineHealing(shrine))
+			then
+				return {60, {"shrine", shrine}}
+			end
+		end
+	end
 
 	return {0, nil}
 end
 
 local function Heal(bot, params)
 	local heal_item, heal_target = unpack(params)
+	if heal_item == "shrine" then
+		bot.ref:Action_MoveToLocation(heal_target:GetLocation())
+		if GetUnitToUnitDistance(bot.ref, heal_target) < 400 then
+			print("Using to shrine to restore..")
+			bot.ref:Action_UseShrine(heal_target)
+		end
+		return
+	end
+
 	local name = heal_item:GetName()
 	if string.find(name, "tango") ~= nil then
 		print("Using tango..")
@@ -358,10 +408,12 @@ local function ShopDesire(bot)
 		secret_shop_pos = SECRET_SHOP_DIRE
 	end
 
-	if IsItemPurchasedFromSideShop(item) and GetUnitToLocationDistance(bot.ref, side_shop_pos) < 3000 then
+	if IsItemPurchasedFromSideShop(item) and GetUnitToLocationDistance(bot.ref, side_shop_pos) < 3000
+		and IsLocationPassable(side_shop_pos)
+	then
 		return {45, side_shop_pos}
 	elseif IsItemPurchasedFromSecretShop(item) and GetUnitToLocationDistance(bot.ref, secret_shop_pos) < 6000
-		and IsLocationVisible(secret_shop_pos) or IsLocationPassable(secret_shop_pos)
+		and IsLocationPassable(secret_shop_pos)
 	then
 		return {45, secret_shop_pos}
 	end
@@ -385,103 +437,6 @@ local function Shop(bot, shop_pos)
 	end
 end
 
-local function UpKeep(bot)
-	-- Upgrade abilities
-	if bot.ability_order then
-		if bot.ref:GetAbilityPoints() > 0 then
-			local ability = bot.ref:GetAbilityByName(bot.ability_order[1])
-			print("Upgrading ability: " .. bot.ability_order[1])
-			if (ability:CanAbilityBeUpgraded() and ability:GetLevel() < ability:GetMaxLevel()) then
-				bot.ref:ActionImmediate_LevelAbility(bot.ability_order[1])
-				table.remove(bot.ability_order, 1)
-				return
-			end
-		end
-	end
-
-	-- Buy items
-	local buy_order = generic_buy_order
-	if bot.buy_order ~= nil then
-		buy_order = bot.buy_order
-	end
-	if #buy_order ~= 0 then
-		local item = buy_order[1]
-		local cost = GetItemCost(item)
-
-		local side_shop_pos = nil
-		if bot.lane == LANE_TOP then
-			side_shop_pos = SIDE_SHOP_TOP
-		else
-			side_shop_pos = SIDE_SHOP_BOT
-		end
-
-		if bot.ref:GetGold() >= cost
-			and not IsItemPurchasedFromSecretShop(item)
-			and not (IsItemPurchasedFromSideShop(item) and GetUnitToLocationDistance(bot.ref, side_shop_pos) < 3000)
-		then
-			local buy_res = bot.ref:ActionImmediate_PurchaseItem(item)
-			if buy_res == PURCHASE_ITEM_SUCCESS then
-				print("Buying: " .. item)
-				table.remove(buy_order, 1)
-			end
-			return
-		end
-	end
-
-	-- Move overflow items to main item slots
-	overflow_slot = nil
-	empty_slot = nil
-	for i = 0, 8 do
-		if empty_slot ~= nil and overflow_slot ~= nil then
-			break
-		end
-		local slot_type = bot.ref:GetItemSlotType(i)
-		local item = bot.ref:GetItemInSlot(i)
-		if slot_type == ITEM_SLOT_TYPE_BACKPACK and item ~= nil then
-			overflow_slot = i
-		elseif slot_type == ITEM_SLOT_TYPE_MAIN and item == nil then
-			empty_slot = i
-		end
-	end
-	if overflow_slot and empty_slot then
-		bot.ref:ActionImmediate_SwapItems(empty_slot, overflow_slot)
-		return
-	end
-
-	-- Use Courier
-	if GetNumCouriers() ~= 0 then
-		local courier = GetCourier(0)
-		local state = GetCourierState(courier)
-		if bot.ref:IsAlive()
-			and state ~= COURIER_STATE_DEAD
-			and state ~= COURIER_STATE_DELIVERING_ITEMS
-			and (bot.ref:GetStashValue() > 400 or bot.ref:GetCourierValue() > 0)
-		then
-			bot.ref:ActionImmediate_Courier(courier, COURIER_ACTION_TAKE_AND_TRANSFER_ITEMS)
-			return
-		end
-	end
-
-	items = GetItems(bot)
-	-- Sell laning items
-	if DotaTime() > 750 and empty_slot == nil
-		and items["item_stout_shield"] or items["item_quelling_blade"]
-		and bot.ref:DistanceFromFountain() < SHOP_USE_DISTANCE
-		or GetUnitToLocationDistance(bot.ref, SIDE_SHOP_TOP) < SHOP_USE_DISTANCE
-		or GetUnitToLocationDistance(bot.ref, SIDE_SHOP_BOT) < SHOP_USE_DISTANCE
-		or GetUnitToLocationDistance(bot.ref, SECRET_SHOP_RADIANT) < SHOP_USE_DISTANCE
-		or GetUnitToLocationDistance(bot.ref, SECRET_SHOP_DIRE) < SHOP_USE_DISTANCE
-	then
-		if items["item_quelling_blade"] then
-			bot.ref:ActionImmediate_SellItem(items["item_quelling_blade"])
-			return
-		elseif items["item_stout_shield"] then
-			bot.ref:ActionImmediate_SellItem(items["item_stout_shield"])
-			return
-		end
-	end
-end
-
 generic_desires = {
 	["farm"] = {FarmDesire, Farm},
 	["retreat"] = {RetreatDesire, Retreat},
@@ -497,6 +452,7 @@ function Thonk(bot, desires)
 	local desire_best = -1
 	local desire_value = nil
 	local desire_mode = nil
+	local desire_name
 
 	for name, thonkage in pairs(desires) do
 		local desire, value = unpack(thonkage[1](bot))
@@ -504,8 +460,10 @@ function Thonk(bot, desires)
 			desire_best = desire
 			desire_value = value
 			desire_mode = thonkage[2]
+			desire_name = name
 		end
 	end
+	print(bot.ref:GetUnitName() .. ": " .. desire_name)
 	desire_mode(bot, desire_value)
 	UpKeep(bot)
 end
