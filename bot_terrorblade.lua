@@ -61,8 +61,6 @@ function desireQ(bot)
 	local abilityQ = bot.ref:GetAbilityByName(SKILL_Q)
 	local listEnemyHeroes = bot.ref:GetNearbyHeroes(900, true, BOT_MODE_NONE)
 
-	print("wanna Q")
-	print(abilityQ:IsCooldownReady())
 	if bot.ref:IsChanneling() or bot.ref:IsUsingAbility() or abilityQ:GetManaCost() >= bot.mp_current or #listEnemyHeroes == 0 or abilityQ:IsCooldownReady() == false then
 		return
 	end

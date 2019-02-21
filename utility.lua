@@ -76,6 +76,17 @@ function GetStartingLane(lane)
     return LANE_TOP
 end
 
+function ClosestRetreatTower(bot)
+	if GetTower(GetTeam(), ((bot.lane - 1) * 3) + 0) ~= nil then
+		return GetTower(GetTeam(), ((bot.lane - 1) * 3) + 0)
+	elseif GetTower(GetTeam(), ((bot.lane - 1) * 3) + 1) ~= nil then
+		return GetTower(GetTeam(), ((bot.lane - 1) * 3) + 1)
+	elseif GetTower(GetTeam(), ((bot.lane - 1) * 3) + 2) ~= nil then
+		return GetTower(GetTeam(), ((bot.lane - 1) * 3) + 2)
+	end
+	return GetAncient(GetTeam)
+end
+
 SHOP_USE_DISTANCE = 200
 SHOP_TYPE_NONE = 0
 SHOP_TYPE_SECRET = 1
