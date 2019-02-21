@@ -3,6 +3,19 @@ require(GetScriptDirectory() .. "/utility")
 
 local desires = DeepCopy(generic_desires)
 
+local buy_order = {
+	"item_tango",
+	"item_tango",
+	"item_flask",
+	"item_blight_stone",
+	"item_boots",
+	"item_chainmail",
+	"item_blades_of_attack",
+	"item_mithril_hammer",
+	"item_mithril_hammer",
+	"item_blight_stone"
+}
+
 SKILL_Q = "furion_sprout"
 SKILL_W = "furion_teleportation"
 SKILL_E = "furion_force_of_nature"
@@ -28,10 +41,50 @@ local bot = {
 	["ref"] = GetBot(),
 	["lane"] = GetStartingLane(1),
 	["retreat"] = 0,
+	["buy_order"] = buy_order,
 	["ability_order"] = ability_order
 }
+
+function DesireSummonTrees(bot, value)
+	local trees = bot.ref:GetNearbyTrees(1000)
+	if #trees > 0 then
+		local towers = bot.ref:GetNearbyTowers(1600, true)
+		local tree = nil
+
+		safe_trees = {}
+		-- Search for safe trees (Not under enemy towers)
+		for i = 1, #trees do
+			local tree_pos = GetTreeLocation(trees[i])
+			if IsLocationVisible(tree_pos) or IsLocationPassable(tree_pos) then
+
+				if #towers == 0 then
+					table.insert(safe_trees, trees[i])
+				else
+					for i = 1, #towers do
+						if GetDistance(tree_pos, towers[i]:GetLocation()) > 1200 then
+							table.insert(safe_trees, trees[i])
+							break
+						end
+					end
+				end
+			end
+		end
+	end
+
+	return {0, nil}
+end
+
+function SummonTrees(bot, value)
+end
+
+desires["summon_trees"] = {DesireSummonTrees, SummonTrees}
 
 function Think()
 	UpdateBot(bot)
 	Thonk(bot, desires)
 end
+
+-- Active item usage
+-- Null Talisman?
+-- Bear Stuff
+-- Mode code into folder of files.
