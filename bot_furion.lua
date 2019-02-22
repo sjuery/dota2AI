@@ -49,14 +49,27 @@ local bot = {
 	["ability_order"] = ability_order
 }
 
-function SpawnTrees(bot)
+function SpawnTrees(bot, enemy)
+	local summon_trees = bot.ref:GetAbilityByName(SKILL_Q)
+	local summon_treants = bot.ref:GetAbilityByName(SKILL_E)
+
+	if not summon_trees:IsTrained() or bot.mp_current < summon_trees:GetManaCost()
+		or not summon_trees:IsFullyCastable() or bot.ref:IsChanneling() or bot.ref:IsUsingAbility() then
+		return false
+	end
+
+	if (enemy:GetHealth() / enemy:GetMaxHealth()) < 0.33 and summon_treants:IsFullyCastable() then
+		bot.ref:Action_UseAbilityOnLocation(summon_trees, best_tree)
+	end
+	return false
 end
 
 function SummonTreants(bot)
 	local trees = bot.ref:GetNearbyTrees(1000)
-	local summon_treants = GetAbilityByName(SKILL_E)
-	local treant_talent = GetAbilityByName(TALENT_4):IsTrained()
-	if #trees == 0 or bot.mp_current < summon_treants:GetManaCost() or not summon_treants:IsFullyCastable() then
+	local summon_treants = bot.ref:GetAbilityByName(SKILL_E)
+	local treant_talent = bot.ref:GetAbilityByName(TALENT_4):IsTrained()
+	if #trees == 0 or bot.mp_current < summon_treants:GetManaCost()
+		or not summon_treants:IsFullyCastable() or bot.ref:IsChanneling() or bot.ref:IsUsingAbility() then
 		return false
 	end
 
@@ -71,7 +84,7 @@ function SummonTreants(bot)
 	best_tree = nil
 
 	for i = 1, #trees do
-		trees[i] = trees[i]:GetTreeLocation()
+		trees[i] = GetTreeLocation(trees[i])
 	end
 
 	for i = 1, #trees do
@@ -84,10 +97,6 @@ function SummonTreants(bot)
 		if count > best_count then
 			best_count = count
 			best_tree = trees[i]
-			if best_count > max_trees then
-				bot.ref:Action_UseAbilityOnLocation(summon_treants, best_tree)
-				return true
-			end
 		end
 	end
 
@@ -99,7 +108,10 @@ function SummonTreants(bot)
 	return false
 end
 
-local function Fight(bot, value)
+local function Fight(bot, enemy)
+	if SpawnTrees(bot, enemy) then
+		return
+	end
 	if SummonTreants(bot) then
 		return
 	end
@@ -111,6 +123,9 @@ desires["fight"][2] = Fight
 function Think()
 	UpdateBot(bot)
 	Thonk(bot, desires)
+	if bot.mp_percent > 0.5 then
+		SummonTreants(bot)
+	end
 end
 
 local treant = {
@@ -125,6 +140,7 @@ treant_desires["heal"] = nil
 treant_desires["shop"] = nil
 treant_desires["rune"] = nil
 treant_desires["meme"] = nil
+treant_desires["farm"] = nil
 
 function MinionThink(treant_unit)
 	treant.ref = treant_unit

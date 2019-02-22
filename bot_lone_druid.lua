@@ -54,29 +54,27 @@ local bear = {
 	["ref"] = GetBot(),
 	["lane"] = LANE_MID,
 	["retreat"] = 0,
+	["buy_order"] = bear_items,
 	["ability_order"] = ability_order
 }
 
-function desireQ(bot)
-	local abilityQ = bot.ref:GetAbilityByName(SKILL_Q)
+function SummonBear(bot)
+	local summon_bear = bot.ref:GetAbilityByName(SKILL_Q)
 
-	if bot.ref:IsChanneling() or bot.ref:IsUsingAbility() or abilityQ:GetManaCost() >= bot.mp_current or abilityQ:IsCooldownReady() == false then
+	if bot.ref:IsChanneling() or bot.ref:IsUsingAbility() or summon_bear:GetManaCost() >= bot.mp_current or not summon_bear:IsFullyCastable() then
 		return
 	end
-	bot.ref:Action_UseAbility(abilityQ)
+	bot.ref:Action_UseAbility(summon_bear)
 end
 
 function Think()
 	UpdateBot(bot)
 	Thonk(bot, desires)
-	desireQ(bot)
+	SummonBear(bot)
 end
 
-function MinionThink(hMinionUnit)
-	print("Tonking")
-	-- hMinionUnit:Action_MoveToLocation(bot.ref:GetLocation())
-	bear.ref = hMinionUnit
-	print(bear.ref)
+function MinionThink(bear_unit)
+	bear.ref = bear_unit
 	UpdateBot(bear)
 	Thonk(bear, desires)
 end

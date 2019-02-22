@@ -7,14 +7,25 @@ local buy_order = {
 	"item_courier",
 	"item_tango",
 	"item_tango",
-	"item_branches",
 	"item_clarity",
+	"item_clarity",
+	"item_branches",
 	"item_stout_shield",
-	"item_quelling_blade",
-	"item_ring_of_protection",
-	"item_sobi_mask",
+	-- Soul Ring
+	"item_gauntlets",
+	"item_gauntlets",
+	"item_ring_of_regen",
+	"item_recipe_soul_ring",
+	-- Mage boots
 	"item_boots",
-	"item_energy_booster"
+	"item_energy_booster",
+	-- Headress
+	"item_ring_of_regen",
+	"item_recipe_headdress",
+	-- Mekansm
+	"item_buckler",
+	"item_recipe_mekansm",
+	"item_recipe_guardian_greaves"
 }
 
 SKILL_Q = "omniknight_purification"
@@ -52,7 +63,7 @@ function desireQ(bot)
 	local lowestHealth = 100000
 	local lowestAlly = nil
 
-	if bot.ref:IsChanneling() or bot.ref:IsUsingAbility() or abilityQ:GetManaCost() >= bot.mp_current or #friendlyHeroes == 0 or abilityQ:IsCooldownReady() == false then
+	if bot.ref:IsChanneling() or bot.ref:IsUsingAbility() or abilityQ:GetManaCost() >= bot.mp_current or #friendlyHeroes == 0 or not abilityQ:IsFullyCastable()then
 		return
 	end
 
