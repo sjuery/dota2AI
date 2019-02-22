@@ -67,7 +67,7 @@ function desireQ(bot)
 	local abilityQ = bot.ref:GetAbilityByName(SKILL_Q)
 	local enemy_heroes = bot.ref:GetNearbyHeroes(900, true, BOT_MODE_NONE)
 
-	if bot.ref:IsChanneling() or bot.ref:IsUsingAbility() or abilityQ:GetManaCost() >= bot.mp_current or #enemy_heroes == 0 or abilityQ:IsCooldownReady() == false then
+	if bot.ref:IsChanneling() or bot.ref:IsUsingAbility() or abilityQ:GetManaCost() >= bot.mp_current or #enemy_heroes == 0 or abilityQ:IsFullyCastable() == false then
 		return
 	end
 	bot.ref:Action_UseAbility(abilityQ)

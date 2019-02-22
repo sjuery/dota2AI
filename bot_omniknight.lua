@@ -52,7 +52,7 @@ function desireQ(bot)
 	local lowestHealth = 100000
 	local lowestAlly = nil
 
-	if bot.ref:IsChanneling() or bot.ref:IsUsingAbility() or abilityQ:GetManaCost() >= bot.mp_current or #friendlyHeroes == 0 or abilityQ:IsCooldownReady() == false then
+	if bot.ref:IsChanneling() or bot.ref:IsUsingAbility() or abilityQ:GetManaCost() >= bot.mp_current or #friendlyHeroes == 0 or abilityQ:IsFullyCastable() == false then
 		return
 	end
 

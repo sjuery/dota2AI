@@ -53,37 +53,37 @@ local bot = {
 
 function desireQ(bot)
 	local abilityQ = bot.ref:GetAbilityByName(SKILL_Q)
-	local enemy_creeps = bot.ref:GetNearbyLaneCreeps(1200, true)
-	local enemy_heroes = bot.ref:GetNearbyHeroes(1200, true, BOT_MODE_NONE)
+	local aoe_heroes = bot.ref:FindAoELocation(true, true, bot.ref:GetLocation(), abilityQ:GetCastRange(), 400, abilityQ:GetSpecialValueFloat("delay_plus_castpoint_tooltip"), 0)
+	local aoe_minions = bot.ref:FindAoELocation(true, false, bot.ref:GetLocation(), abilityQ:GetCastRange(), 400, abilityQ:GetSpecialValueFloat("delay_plus_castpoint_tooltip"), 0)
 
-	if bot.ref:IsChanneling() or bot.ref:IsUsingAbility() then
+	if bot.ref:IsChanneling() or bot.ref:IsUsingAbility() or abilityQ:GetManaCost() >= bot.mp_current or abilityQ:IsFullyCastable() == false then
 		return
 	end
 
-	if #enemy_creeps + #enemy_heroes >= 2 then
-		if #enemy_creeps > 2 then
-			bot.ref:Action_UseAbilityOnLocation(abilityQ, enemy_creeps[1]:GetLocation())
-		elseif #enemy_heroes > 0 then
-			bot.ref:Action_UseAbilityOnLocation(abilityQ, enemy_heroes[1]:GetLocation())
-		end
+	if aoe_heroes.count > 1 and aoe_minions.count > 2 then
+		bot.ref:Action_UseAbilityOnLocation(abilityQ, aoe_heroes.targetloc)
+	elseif aoe_heroes.count > 2 then
+		bot.ref:Action_UseAbilityOnLocation(abilityQ, aoe_heroes.targetloc)
+	elseif aoe_minions.count > 3 then
+		bot.ref:Action_UseAbilityOnLocation(abilityQ, aoe_minions.targetloc)
 	end
 end
 
 function desireW(bot)
 	local abilityW = bot.ref:GetAbilityByName(SKILL_W)
-	local enemy_creeps = bot.ref:GetNearbyLaneCreeps(1200, true)
-	local enemy_heroes = bot.ref:GetNearbyHeroes(1200, true, BOT_MODE_NONE)
+	local aoe_heroes = bot.ref:FindAoELocation(true, true, bot.ref:GetLocation(), abilityW:GetCastRange(), 375, abilityW:GetSpecialValueFloat("delay_plus_castpoint_tooltip"), 0)
+	local aoe_minions = bot.ref:FindAoELocation(true, false, bot.ref:GetLocation(), abilityW:GetCastRange(), 375, abilityW:GetSpecialValueFloat("delay_plus_castpoint_tooltip"), 0)
 
-	if bot.ref:IsChanneling() or bot.ref:IsUsingAbility() then
+	if bot.ref:IsChanneling() or bot.ref:IsUsingAbility() or abilityW:GetManaCost() >= bot.mp_current or abilityW:IsFullyCastable() == false then
 		return
 	end
 
-	if #enemy_creeps + #enemy_heroes >= 1 then
-		if #enemy_creeps > 2 then
-			bot.ref:Action_UseAbilityOnLocation(abilityW, enemy_creeps[1]:GetLocation())
-		elseif #enemy_heroes > 0 then
-			bot.ref:Action_UseAbilityOnLocation(abilityW, enemy_heroes[1]:GetLocation())
-		end
+	if aoe_heroes.count > 1 and aoe_minions.count > 2 then
+		bot.ref:Action_UseAbilityOnLocation(abilityW, aoe_heroes.targetloc)
+	elseif aoe_heroes.count > 2 then
+		bot.ref:Action_UseAbilityOnLocation(abilityW, aoe_heroes.targetloc)
+	elseif aoe_minions.count > 3 then
+		bot.ref:Action_UseAbilityOnLocation(abilityW, aoe_minions.targetloc)
 	end
 end
 

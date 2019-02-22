@@ -76,7 +76,7 @@ function GetStartingLane(lane)
     return LANE_TOP
 end
 
-function ClosestRetreatTower(bot)
+function PotentialTowers(bot)
 	if GetTower(GetTeam(), ((bot.lane - 1) * 3) + 0) ~= nil then
 		return GetTower(GetTeam(), ((bot.lane - 1) * 3) + 0)
 	elseif GetTower(GetTeam(), ((bot.lane - 1) * 3) + 1) ~= nil then
@@ -84,7 +84,20 @@ function ClosestRetreatTower(bot)
 	elseif GetTower(GetTeam(), ((bot.lane - 1) * 3) + 2) ~= nil then
 		return GetTower(GetTeam(), ((bot.lane - 1) * 3) + 2)
 	end
-	return GetAncient(GetTeam)
+	return nil
+end
+
+function RetreatLocation(bot)
+	if GetTower(GetTeam(), ((bot.lane - 1) * 3) + 0) ~= nil then
+		return GetTower(GetTeam(), ((bot.lane - 1) * 3) + 1)
+	elseif GetTower(GetTeam(), ((bot.lane - 1) * 3) + 1) ~= nil then
+		return GetTower(GetTeam(), ((bot.lane - 1) * 3) + 2)
+	end
+
+	if GetTeam() == TEAM_RADIANT then
+		return FOUNTAIN_RADIANT
+	end
+	return FOUNTAIN_DIRE
 end
 
 SHOP_USE_DISTANCE = 200
@@ -95,3 +108,5 @@ SIDE_SHOP_TOP = Vector(-7220, 4430)
 SIDE_SHOP_BOT = Vector(7249, -4113)
 SECRET_SHOP_RADIANT = Vector(-4472, 1328)
 SECRET_SHOP_DIRE = Vector(4586, -1588)
+FOUNTAIN_RADIANT = Vector(-7093, -6542)
+FOUNTAIN_DIRE = Vector(7015, 6534)

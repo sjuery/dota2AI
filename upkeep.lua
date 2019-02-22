@@ -3,6 +3,12 @@ function UseItems()
 end
 
 function UpKeep(bot)
+	if GetGlyphCooldown() == 0 then
+		if PotentialTowers(bot):TimeSinceDamagedByAnyHero() < 3 then
+			bot.ref:ActionImmediate_Glyph()
+		end
+	end
+
 	-- Upgrade abilities
 	if bot.ability_order then
 		if bot.ref:GetAbilityPoints() > 0 then

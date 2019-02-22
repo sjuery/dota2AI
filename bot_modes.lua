@@ -101,13 +101,14 @@ local function RetreatDesire(bot)
 end
 
 local function Retreat(bot, value)
-	bot.ref:Action_MoveToLocation(ClosestRetreatTower(bot):GetLocation())
+	bot.ref:Action_MoveToLocation(RetreatLocation(bot):GetLocation())
 end
 
 local function PushDesire(bot)
 	local enemy_towers = bot.ref:GetNearbyTowers(1600, true)
 	local allied_creeps = bot.ref:GetNearbyLaneCreeps(500, false)
 	local enemy_creeps = bot.ref:GetNearbyLaneCreeps(1600, true)
+	local enemy_barracks = bot.ref:GetNearbyBarracks(1600, true)
 
 	-- If help nearby or tower will die in two hits then we want to attack tower
 	if #enemy_towers > 0 and #allied_creeps >= 3 and #enemy_creeps <= 2 then
@@ -115,7 +116,10 @@ local function PushDesire(bot)
 	end
 	if #enemy_towers > 0 and enemy_towers[1]:GetHealth() < bot.ref:GetEstimatedDamageToTarget(true, enemy_towers[1], bot.ref:GetAttackSpeed(), DAMAGE_TYPE_PHYSICAL) then
 		return {60, enemy_towers[1]}
-	end		
+	end
+	if #enemy_towers == 0 and #enemy_barracks > 0 then
+		return {50, enemy_barracks[1]}
+	end
 	return {2, enemy_towers[1]}
 end
 
@@ -157,8 +161,10 @@ local function FightDesire(bot)
 		end
 	end
 
-	if target and #enemy_heroes <= #heroes then
+	if target and #enemy_heroes == #heroes + 1 then
 		return {30, target}
+	elseif target and #enemy_heroes < #heroes + 1 then
+		return {55, target}
 	elseif target then
 		return {5, target}
 	end
@@ -214,14 +220,14 @@ local function Rune(bot, rune)
 	end
 	if GetTeam() == TEAM_RADIANT then
 		if bot.lane == LANE_MID then
-			bot.ref:Action_MoveToLocation(GetRuneSpawnLocation(RUNE_BOUNTY_3))
-			bot.ref:Action_PickUpRune(RUNE_BOUNTY_3)
-		elseif bot.lane == LANE_TOP then
-			bot.ref:Action_MoveToLocation(GetRuneSpawnLocation(RUNE_BOUNTY_3) + Vector(-350, 1000))
-			bot.ref:Action_PickUpRune(RUNE_BOUNTY_3)
-		elseif bot.lane == LANE_BOT then
 			bot.ref:Action_MoveToLocation(GetRuneSpawnLocation(RUNE_BOUNTY_1))
 			bot.ref:Action_PickUpRune(RUNE_BOUNTY_1)
+		elseif bot.lane == LANE_TOP then
+			bot.ref:Action_MoveToLocation(GetRuneSpawnLocation(RUNE_BOUNTY_1) + Vector(-350, 1000))
+			bot.ref:Action_PickUpRune(RUNE_BOUNTY_1)
+		elseif bot.lane == LANE_BOT then
+			bot.ref:Action_MoveToLocation(GetRuneSpawnLocation(RUNE_BOUNTY_3))
+			bot.ref:Action_PickUpRune(RUNE_BOUNTY_3)
 		end
 	else
 		if bot.lane == LANE_MID then
