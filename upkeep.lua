@@ -1,6 +1,56 @@
-function UseItems()
-	-- Actually use active items
+function UseItems(bot)
+	local allies = bot.ref:GetNearbyHeroes(1200, false, BOT_MODE_NONE)
+	local items = GetItems(bot)
+
+	-- Use Mana boots
+	local arcane_boots = items["item_arcane_boots"]
+	if arcane_boots ~= nil and arcane_boots:IsFullyCastable()
+		and bot.mp_max - bot.mp_current > 160 and #allies > 0
+	then
+		bot.ref:Action_UseAbility(arcane_boots)
+		return
+	end
+
+	-- Use phase boots for retreating, maybe one day for attacking.
+	local phase_boots = items["item_phase_boots"]
+	if phase_boots ~= nil and phase_boots:IsFullyCastable()
+		and bot.desire == "retreat" and bot.hp_percent < 0.33
+	then
+		bot.ref:Action_UseAbility(phase_boots)
+		return
+	end
+
+	-- Use soul ring if hp > 60% and we need mana
+	local soul_ring = items["item_soul_ring"]
+	if soul_ring ~= nil and soul_ring:IsFullyCastable()
+		and bot.hp_percent > 0.6 and (bot.mp_max - bot.mp_current) > 150
+	then
+		bot.ref:Action_UseAbility(soul_ring)
+	end
+
+	-- Use mekansm if allies in range, need to improve later
+	local mekansm = items["item_mekansm"]
+	if mekansm ~= nil and mekansm:IsFullyCastable() and #allies > 0 then
+		bot.ref:Action_UseAbility(mekansm)
+	end
 end
+
+local generic_buy_order = {
+	"item_tango",
+	"item_tango",
+	"item_flask",
+	"item_stout_shield",
+	"item_quelling_blade",
+-- Power treads
+	"item_boots",
+	"item_boots_of_elves",
+	"item_gloves",
+-- Armlet of Mordiggian
+	"item_helm_of_iron_will",
+	"item_boots_of_elves",
+	"item_blades_of_attack",
+	"item_recipe_armlet"
+}
 
 function UpKeep(bot)
 	if GetGlyphCooldown() == 0 then
@@ -13,10 +63,10 @@ function UpKeep(bot)
 	if bot.ability_order then
 		if bot.ref:GetAbilityPoints() > 0 then
 			local ability = bot.ref:GetAbilityByName(bot.ability_order[1])
-			print("Upgrading ability: " .. bot.ability_order[1])
 			if (ability:CanAbilityBeUpgraded() and ability:GetLevel() < ability:GetMaxLevel()) then
 				bot.ref:ActionImmediate_LevelAbility(bot.ability_order[1])
 				table.remove(bot.ability_order, 1)
+				print("Upgrading ability: " .. bot.ability_order[1])
 				return
 			end
 		end
@@ -27,7 +77,7 @@ function UpKeep(bot)
 	if bot.buy_order ~= nil then
 		buy_order = bot.buy_order
 	end
-	if #buy_order ~= 0 then
+	if buy_order and #buy_order ~= 0 then
 		local item = buy_order[1]
 		local cost = GetItemCost(item)
 
@@ -116,5 +166,5 @@ function UpKeep(bot)
 		end
 	end
 
-	UseItems()
+	UseItems(bot)
 end

@@ -13,7 +13,11 @@ local buy_order = {
 	"item_blades_of_attack",
 	"item_mithril_hammer",
 	"item_mithril_hammer",
-	"item_blight_stone"
+	-- Scepter which he will probably never get..
+	"item_ogre_axe",
+	"item_point_booster",
+	"item_blade_of_alacrity",
+	"item_staff_of_wizardry"
 }
 
 SKILL_Q = "furion_sprout"
@@ -31,7 +35,7 @@ TALENT_7 = "special_bonus_unique_furion_3"
 TALENT_8 = "special_bonus_unique_furion"
 
 local ability_order = {
-	SKILL_E, SKILL_W, SKILL_E, SKILL_Q, SKILL_E,
+	SKILL_E, SKILL_Q, SKILL_E, SKILL_W, SKILL_E,
 	SKILL_R, SKILL_E, SKILL_W, SKILL_W, TALENT_1,
 	SKILL_W, SKILL_R, SKILL_Q, SKILL_Q, TALENT_4,
 	SKILL_Q, SKILL_R, TALENT_5, TALENT_7
@@ -45,46 +49,105 @@ local bot = {
 	["ability_order"] = ability_order
 }
 
-function DesireSummonTrees(bot, value)
+function SpawnTrees(bot, enemy)
+	local summon_trees = bot.ref:GetAbilityByName(SKILL_Q)
+	local summon_treants = bot.ref:GetAbilityByName(SKILL_E)
+
+	if not summon_trees:IsTrained() or bot.mp_current < summon_trees:GetManaCost()
+		or not summon_trees:IsFullyCastable() or bot.ref:IsChanneling() or bot.ref:IsUsingAbility() then
+		return false
+	end
+
+	if (enemy:GetHealth() / enemy:GetMaxHealth()) < 0.33 then
+		bot.ref:Action_UseAbilityOnLocation(summon_trees, best_tree)
+	end
+	return false
+end
+
+function SummonTreants(bot)
 	local trees = bot.ref:GetNearbyTrees(1000)
-	if #trees > 0 then
-		local towers = bot.ref:GetNearbyTowers(1600, true)
-		local tree = nil
+	local summon_treants = bot.ref:GetAbilityByName(SKILL_E)
+	local treant_talent = bot.ref:GetAbilityByName(TALENT_4):IsTrained()
+	if #trees == 0 or bot.mp_current < summon_treants:GetManaCost()
+		or not summon_treants:IsFullyCastable() or bot.ref:IsChanneling() or bot.ref:IsUsingAbility() then
+		return false
+	end
 
-		safe_trees = {}
-		-- Search for safe trees (Not under enemy towers)
-		for i = 1, #trees do
-			local tree_pos = GetTreeLocation(trees[i])
-			if IsLocationVisible(tree_pos) or IsLocationPassable(tree_pos) then
+	radius = 150 + summon_treants:GetLevel() * 75
+	max_trees = 1 + summon_treants:GetLevel()
+	if treant_talent then
+		max_trees = max_trees + 4
+		radius = radius + 125
+	end
 
-				if #towers == 0 then
-					table.insert(safe_trees, trees[i])
-				else
-					for i = 1, #towers do
-						if GetDistance(tree_pos, towers[i]:GetLocation()) > 1200 then
-							table.insert(safe_trees, trees[i])
-							break
-						end
-					end
-				end
+	best_count = 0
+	best_tree = nil
+
+	for i = 1, #trees do
+		trees[i] = GetTreeLocation(trees[i])
+	end
+
+	for i = 1, #trees do
+		local count = 0
+		for j = 1, #trees do
+			if GetDistance(trees[i], trees[j]) < radius then
+				count = count + 1
 			end
+		end
+		if count > best_count then
+			best_count = count
+			best_tree = trees[i]
 		end
 	end
 
-	return {0, nil}
+	if best_count >= 2 then
+		bot.ref:Action_UseAbilityOnLocation(summon_treants, best_tree)
+		return true
+	end
+
+	return false
 end
 
-function SummonTrees(bot, value)
+local function Fight(bot, enemy)
+	if SpawnTrees(bot, enemy) then
+		return
+	end
+	if SummonTreants(bot) then
+		return
+	end
+	bot.ref:Action_AttackUnit(value, true)
 end
 
-desires["summon_trees"] = {DesireSummonTrees, SummonTrees}
+desires["fight"][2] = Fight
 
 function Think()
 	UpdateBot(bot)
 	Thonk(bot, desires)
+	if bot.mp_percent > 0.5 then
+		SummonTreants(bot)
+	end
 end
 
--- Active item usage
--- Null Talisman?
--- Bear Stuff
--- Mode code into folder of files.
+local treant = {
+	["ref"] = GetBot(),
+	["lane"] = GetStartingLane(1),
+	["retreat"] = 0,
+}
+
+local treant_desires = DeepCopy(generic_desires)
+treant_desires["shop"] = nil
+treant_desires["heal"] = nil
+treant_desires["shop"] = nil
+treant_desires["rune"] = nil
+treant_desires["meme"] = nil
+treant_desires["farm"] = nil
+
+function MinionThink(treant_unit)
+	treant.ref = treant_unit
+	UpdateBot(treant)
+	Thonk(treant, treant_desires)
+end
+
+-- Active item usage.
+-- Move code into folder of files.
+-- Team think.

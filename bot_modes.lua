@@ -4,7 +4,7 @@ require(GetScriptDirectory() .. "/utility")
 local function FarmDesire(bot)
 	local allied_creeps = bot.ref:GetNearbyLaneCreeps(1000, false)
 	local enemy_creeps = bot.ref:GetNearbyLaneCreeps(1000, true)
-	local enemy_heroes = bot.ref:GetNearbyHeroes(900, true, BOT_MODE_NONE)
+	local enemy_heroes = bot.ref:GetNearbyHeroes(1200, true, BOT_MODE_NONE)
 
 	if #allied_creeps == 0 and #enemy_creeps == 0 then
 		return {10, nil}
@@ -58,10 +58,11 @@ end
 
 local function RetreatDesire(bot)
 	if bot.retreat > GameTime() then
-		return {100, 0}
+		return {100, bot.retreat}
 	end
 
 	allied_creeps = bot.ref:GetNearbyLaneCreeps(1600, false)
+	enemy_creeps = bot.ref:GetNearbyLaneCreeps(800, false)
 	enemy_towers = bot.ref:GetNearbyTowers(1600, true)
 
 	local meatshield_creeps = {}
@@ -83,7 +84,7 @@ local function RetreatDesire(bot)
 		return {55, DotaTime() + 10}
 	end
 
-	if bot.ref:WasRecentlyDamagedByCreep(1.0) then
+	if bot.ref:WasRecentlyDamagedByCreep(1.0) and #enemy_creeps > 1 then
 		return {40, DotaTime() + 6}
 	end
 
@@ -93,14 +94,15 @@ local function RetreatDesire(bot)
 
 	if #enemy_towers > 0
 		and #meatshield_creeps <= 2
-		and GetUnitToUnitDistance(enemy_towers[1], bot.ref) < 800
+		and GetUnitToUnitDistance(enemy_towers[1], bot.ref) < 850
 	then
 		return {70, DotaTime() + 5}
 	end
-	return {0, nil}
+	return {0, 0}
 end
 
-local function Retreat(bot, value)
+local function Retreat(bot, retreat_time)
+	bot.retreat = retreat_time
 	bot.ref:Action_MoveToLocation(RetreatLocation(bot):GetLocation())
 end
 
@@ -114,7 +116,8 @@ local function PushDesire(bot)
 	if #enemy_towers > 0 and #allied_creeps >= 3 and #enemy_creeps <= 2 then
 		return {40, enemy_towers[1]}
 	end
-	if #enemy_towers > 0 and enemy_towers[1]:GetHealth() < bot.ref:GetEstimatedDamageToTarget(true, enemy_towers[1], bot.ref:GetAttackSpeed(), DAMAGE_TYPE_PHYSICAL) then
+	if #enemy_towers > 0 and not enemy_towers[1]:IsAttackImmune() 
+		and enemy_towers[1]:GetHealth() < bot.ref:GetEstimatedDamageToTarget(true, enemy_towers[1], bot.ref:GetAttackSpeed(), DAMAGE_TYPE_PHYSICAL) then
 		return {60, enemy_towers[1]}
 	end
 	if #enemy_towers == 0 and #enemy_barracks > 0 then
@@ -136,6 +139,9 @@ end
 local function FightDesire(bot)
 	local enemy_heroes = bot.ref:GetNearbyHeroes(1000, true, BOT_MODE_NONE)
 	local heroes = bot.ref:GetNearbyHeroes(600, false, BOT_MODE_NONE)
+
+	local allied_creeps = bot.ref:GetNearbyLaneCreeps(1000, false)
+	local enemy_creeps = bot.ref:GetNearbyLaneCreeps(1000, true)
 
 	local target = nil
 	if #enemy_heroes > 0 then
@@ -161,13 +167,23 @@ local function FightDesire(bot)
 		end
 	end
 
-	if target and #enemy_heroes == #heroes + 1 then
-		return {30, target}
-	elseif target and #enemy_heroes < #heroes + 1 then
-		return {55, target}
-	elseif target then
-		return {5, target}
+	if not target then
+		return {0, nil}
 	end
+
+	-- Plus one to count ourself
+	local target_hp_percent = (target:GetHealth() / target:GetMaxHealth())
+	if #heroes + 1 >= #enemy_heroes 
+		and target_hp_percent < 0.33
+		and bot.hp_current > target_hp_percent * 1.4
+	then
+		return {50, target}
+	elseif #heroes + 1 == #enemy_heroes and #allied_creeps + 1 >= #enemy_creeps then
+		return {30, target}
+	elseif #heroes + 1 > #enemy_heroes then
+		return {45, target}
+	end
+
 	return {0, nil}
 end
 
@@ -215,7 +231,7 @@ local function Rune(bot, rune)
 	if rune ~= nil then
 		--bot.ref:Action_MoveDirectly(GetRuneSpawnLocation(rune))
 		bot.ref:Action_PickUpRune(rune)
-		print("Trying to get bounty rune..")
+		--print("Trying to get bounty rune..")
 		return
 	end
 	if GetTeam() == TEAM_RADIANT then
@@ -266,7 +282,7 @@ local function HealDesire(bot)
 	local salve = items["item_flask"]
 	if salve ~= nil 
 		and not bot.ref:HasModifier("modifier_flask_healing") 
-		and not bot.ref:WasRecentlyDamagedByAnyHero(3.0)
+		and not bot.ref:WasRecentlyDamagedByAnyHero(3.0) and not bot.ref:WasRecentlyDamagedByTower(3.0)
 		and (bot.hp_max - bot.hp_current > 400 or bot.hp_percent < 0.33)
 	then
 		return {60, {salve, bot.ref}}
@@ -317,7 +333,7 @@ local function HealDesire(bot)
 	local clarity = items["item_clarity"]
 	if clarity ~= nil
 		and not bot.ref:HasModifier("modifier_clarity_potion")
-		and not bot.ref:WasRecentlyDamagedByAnyHero(3.0)
+		and not bot.ref:WasRecentlyDamagedByAnyHero(3.0) and not bot.ref:WasRecentlyDamagedByTower(3.0)
 		and (bot.mp_max - bot.mp_current > 225)
 	then
 		return {60, {clarity, bot.ref}}
@@ -358,30 +374,11 @@ local function Heal(bot, params)
 
 	local name = heal_item:GetName()
 	if string.find(name, "tango") ~= nil then
-		print("Using tango..")
 		bot.ref:Action_UseAbilityOnTree(heal_item, heal_target)
 	elseif name == "item_flask" or name == "item_clarity" then
-		print("Using.. " .. name)
 		bot.ref:Action_UseAbilityOnEntity(heal_item, heal_target)
 	end
 end
-
-local generic_buy_order = {
-	"item_tango",
-	"item_tango",
-	"item_flask",
-	"item_stout_shield",
-	"item_quelling_blade",
--- Power treads
-	"item_boots",
-	"item_boots_of_elves",
-	"item_gloves",
--- Armlet of Mordiggian
-	"item_helm_of_iron_will",
-	"item_boots_of_elves",
-	"item_blades_of_attack",
-	"item_recipe_armlet"
-}
 
 local function ShopDesire(bot)
 	local buy_order = generic_buy_order
@@ -463,7 +460,10 @@ function Thonk(bot, desires)
 			desire_name = name
 		end
 	end
-	print(bot.ref:GetUnitName() .. ": " .. desire_name)
+	if desire_name ~= bot.desire then
+		print(bot.ref:GetUnitName() .. ": " .. desire_name)
+	end
 	desire_mode(bot, desire_value)
+	bot.desire = desire_name
 	UpKeep(bot)
 end
