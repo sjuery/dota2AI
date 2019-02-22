@@ -66,7 +66,7 @@ function UpKeep(bot)
 			if (ability:CanAbilityBeUpgraded() and ability:GetLevel() < ability:GetMaxLevel()) then
 				bot.ref:ActionImmediate_LevelAbility(bot.ability_order[1])
 				table.remove(bot.ability_order, 1)
-				print("Upgrading ability: " .. bot.ability_order[1])
+				-- print("Upgrading ability: " .. bot.ability_order[1])
 				return
 			end
 		end
