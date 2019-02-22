@@ -121,9 +121,11 @@ end
 desires["fight"][2] = Fight
 
 function Think()
+	local enemy_creeps = bot.ref:GetNearbyLaneCreeps(1600, true)
+	local enemy_heroes = bot.ref:GetNearbyHeroes(1600, true, BOT_MODE_NONE)
 	UpdateBot(bot)
 	Thonk(bot, desires)
-	if bot.mp_percent > 0.5 then
+	if bot.mp_percent > 0.5 and #enemy_creeps ~= 0 and #enemy_heroes ~= 0 then
 		SummonTreants(bot)
 	end
 end
@@ -134,20 +136,31 @@ local treant = {
 	["retreat"] = 0,
 }
 
-local treant_desires = DeepCopy(generic_desires)
-treant_desires["shop"] = nil
-treant_desires["heal"] = nil
-treant_desires["shop"] = nil
-treant_desires["rune"] = nil
-treant_desires["meme"] = nil
-treant_desires["farm"] = nil
+local treant_desires = {
+	["farm"] = desires["farm"],
+	["fight"] = desires["fight"],
+	["push"] = desires["push"]
+}
+
+function TreantFarmDesire()
+	local enemy_creeps = bot.ref:GetNearbyLaneCreeps(1600, true)
+	if #enemy_creeps > 0 then
+		return {40, enemy_creeps[1]}
+	end
+end
+
+function TreantFightDesire()
+	local enemy_heroes = bot.ref:GetNearbyHeroes(1600, true, BOT_MODE_NONE)
+	if #enemy_heroes > 0 then
+		return {60, enemy_heroes[1]}
+	end
+end
+
+treant_desires["farm"][1] = TreantFarmDesire
+treant_desires["fight"][1] = TreantFightDesire
 
 function MinionThink(treant_unit)
 	treant.ref = treant_unit
 	UpdateBot(treant)
 	Thonk(treant, treant_desires)
 end
-
--- Active item usage.
--- Move code into folder of files.
--- Team think.

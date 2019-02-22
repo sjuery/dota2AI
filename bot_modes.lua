@@ -76,25 +76,28 @@ local function RetreatDesire(bot)
 			end
 		end
 	end
-	-- One day use meatshield creeps for tower aggro
 
+	-- Low health
 	if bot.hp_percent < 0.4 then
 		return {40, DotaTime() + 7}
 	elseif bot.hp_percent < 0.2 then
 		return {55, DotaTime() + 10}
 	end
 
+	-- Recently damaged
 	if bot.ref:WasRecentlyDamagedByCreep(1.0) and #enemy_creeps > 1 then
 		return {40, DotaTime() + 6}
 	end
-
-	if bot.ref:WasRecentlyDamagedByTower(1.0) then
+	if bot.ref:WasRecentlyDamagedByTower(1.0) and #enemy_towers > 1
+		and GetUnitToUnitDistance(bot.ref, enemy_towers[1]) < 900
+	then
 		return {70, DotaTime() + 5}
 	end
 
+	-- Tower not safe
 	if #enemy_towers > 0
 		and #meatshield_creeps <= 2
-		and GetUnitToUnitDistance(enemy_towers[1], bot.ref) < 850
+		and GetUnitToUnitDistance(enemy_towers[1], bot.ref) < 920
 	then
 		return {70, DotaTime() + 5}
 	end
@@ -112,12 +115,17 @@ local function PushDesire(bot)
 	local enemy_creeps = bot.ref:GetNearbyLaneCreeps(1600, true)
 	local enemy_barracks = bot.ref:GetNearbyBarracks(1600, true)
 
+	if #enemy_towers == 0 or enemy_towers[1]:IsAttackImmune() then
+		return {0, nil}
+	end
+
 	-- If help nearby or tower will die in two hits then we want to attack tower
 	if #enemy_towers > 0 and #allied_creeps >= 3 and #enemy_creeps <= 2 then
 		return {40, enemy_towers[1]}
 	end
-	if #enemy_towers > 0 and not enemy_towers[1]:IsAttackImmune() 
-		and enemy_towers[1]:GetHealth() < bot.ref:GetEstimatedDamageToTarget(true, enemy_towers[1], bot.ref:GetAttackSpeed(), DAMAGE_TYPE_PHYSICAL) then
+	if #enemy_towers > 0
+		and enemy_towers[1]:GetHealth() < bot.ref:GetEstimatedDamageToTarget(true, enemy_towers[1], bot.ref:GetAttackSpeed(), DAMAGE_TYPE_PHYSICAL)
+	then
 		return {60, enemy_towers[1]}
 	end
 	if #enemy_towers == 0 and #enemy_barracks > 0 then
@@ -270,9 +278,7 @@ end
 
 
 local function HealDesire(bot)
-	if bot.hp_percent > 0.95
-		or bot.ref:HasModifier("modifier_fountain_aura_buff")
-		or bot.ref:HasModifier("modifier_filler_heal") 
+	if bot.ref:HasModifier("modifier_fountain_aura_buff")
 	then
 		return {0, nil}
 	end
@@ -352,6 +358,7 @@ local function HealDesire(bot)
 			if (distance < 3000 and not (GetShrineCooldown(shrine) > 1)
 				and (bot.mp_max - bot.mp_current > 250 or bot.hp_max - bot.hp_current > 400 or bot.hp_percent < 0.33))
 				or (distance < 1000 and IsShrineHealing(shrine))
+				and not bot.ref:HasModifier("modifier_flask_healing")
 			then
 				return {60, {"shrine", shrine}}
 			end

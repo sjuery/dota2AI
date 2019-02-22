@@ -37,7 +37,7 @@ TALENT_7 = "special_bonus_unique_underlord"
 TALENT_8 = "special_bonus_unique_underlord_4"
 
 local ability_order = {
-	SKILL_Q, SKILL_E, SKILL_Q, SKILL_W, SKILL_Q,
+	SKILL_Q, SKILL_W, SKILL_Q, SKILL_E, SKILL_Q,
 	SKILL_R, SKILL_Q, SKILL_W, SKILL_W, TALENT_1,
 	SKILL_W, SKILL_R, SKILL_E, SKILL_E, TALENT_4,
 	SKILL_E, SKILL_R, TALENT_6, TALENT_8
