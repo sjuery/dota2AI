@@ -58,7 +58,7 @@ function SpawnTrees(bot, enemy)
 		return false
 	end
 
-	if (enemy:GetHealth() / enemy:GetMaxHealth()) < 0.33 and summon_treants:IsFullyCastable() then
+	if (enemy:GetHealth() / enemy:GetMaxHealth()) < 0.33 then
 		bot.ref:Action_UseAbilityOnLocation(summon_trees, best_tree)
 	end
 	return false
