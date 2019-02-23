@@ -100,12 +100,6 @@ function GetLaneTower(bot)
 end
 
 function RetreatLocation(bot)
-	if GetTower(GetTeam(), ((bot.lane - 1) * 3) + 0) ~= nil then
-		return GetTower(GetTeam(), ((bot.lane - 1) * 3) + 1):GetLocation()
-	elseif GetTower(GetTeam(), ((bot.lane - 1) * 3) + 1) ~= nil then
-		return GetTower(GetTeam(), ((bot.lane - 1) * 3) + 2):GetLocation()
-	end
-
 	if GetTeam() == TEAM_RADIANT then
 		return FOUNTAIN_RADIANT
 	end

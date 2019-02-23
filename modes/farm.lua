@@ -45,9 +45,13 @@ end
 
 function Farm(bot, creep)
 	front = GetLaneFrontAmount(GetTeam(), bot.lane, false)
+	print(bot.name .. front)
 	enemyfront = GetLaneFrontAmount(GetEnemyTeam(), bot.lane, false)
+	print(bot.name .. enemyfront)
 	front = Min(front, enemyfront)
+	print(front)
 	dest = GetLocationAlongLane(bot.lane, Min(1.0, front))
+	print(dest)
 	bot.ref:Action_MoveToLocation(dest)
 	if creep ~= nil then
 		bot.ref:Action_AttackUnit(creep, true)

@@ -22,7 +22,7 @@ function RetreatPriority(bot)
 		-- Search for nearby allied creeps to take tower hits
 		for i = 1, #allied_creeps do
 			for i = 1, #enemy_towers do
-				if GetUnitToUnitDistance(allied_creeps[i], enemy_towers[i]) < 700 then
+				if GetUnitToUnitDistance(allied_creeps[i], enemy_towers[i]) < 900 then
 					table.insert(meatshield_creeps, allied_creeps[i])
 				end
 			end

@@ -38,6 +38,13 @@ function UseItems(bot)
 		bot.ref:Action_UseAbility(mekansm)
 		return
 	end
+
+	-- Use manta if UseItems is called..
+	local manta = items["item_manta"]
+	if manta ~= nil and manta:IsFullyCastable() then
+		bot.ref:Action_UseAbility(manta)
+		return
+	end
 end
 
 function UpKeep(bot)
