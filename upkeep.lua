@@ -33,6 +33,11 @@ function UseItems(bot)
 	if mekansm ~= nil and mekansm:IsFullyCastable() and #allies > 0 then
 		bot.ref:Action_UseAbility(mekansm)
 	end
+
+	local moonshard = items["item_moon_shard"]
+	if moonshard ~= nil and moonshard:IsFullyCastable() then
+		bot.ref:Action_UseAbility(moonshard)
+	end
 end
 
 local generic_buy_order = {

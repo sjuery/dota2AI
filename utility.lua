@@ -89,15 +89,56 @@ end
 
 function RetreatLocation(bot)
 	if GetTower(GetTeam(), ((bot.lane - 1) * 3) + 0) ~= nil then
-		return GetTower(GetTeam(), ((bot.lane - 1) * 3) + 1)
+		return GetTower(GetTeam(), ((bot.lane - 1) * 3) + 1):GetLocation()
 	elseif GetTower(GetTeam(), ((bot.lane - 1) * 3) + 1) ~= nil then
-		return GetTower(GetTeam(), ((bot.lane - 1) * 3) + 2)
+		return GetTower(GetTeam(), ((bot.lane - 1) * 3) + 2):GetLocation()
 	end
 
 	if GetTeam() == TEAM_RADIANT then
 		return FOUNTAIN_RADIANT
 	end
 	return FOUNTAIN_DIRE
+end
+
+function ShouldTrade(bot, target)
+	if (bot.hp_current / bot.total_damage) > TimeToLive(target) then
+		return 1
+	end
+	return 0
+end
+
+function TimeToLive(hero)
+	return target:GetHealth() / TotalDamage(hero)
+end
+
+function TotalDamage(hero)
+	local total_damage = 0
+	local enemy_creeps = hero:GetNearbyCreeps(500, true)
+	local enemy_towers = hero:GetNearbyTowers(950, true)
+	local enemy_heroes = hero:GetNearbyHeroes(1600, true, BOT_MODE_NONE)
+
+	if enemy_creeps ~= nil then
+		for i = 1, #enemy_creeps do
+			if enemy_creeps[i]:GetAttackTarget() == hero then
+				total_damage = total_damage + enemy_creeps[i]:GetEstimatedDamageToTarget(true, hero, 100, DAMAGE_TYPE_ALL)
+			end
+		end
+	end
+	if enemy_towers ~= nil then
+		for i = 1, #enemy_towers do
+			if enemy_towers[i]:GetAttackTarget() == hero then
+				total_damage = total_damage + nemy_towers[i]:GetEstimatedDamageToTarget(true, hero, 100, DAMAGE_TYPE_ALL)
+			end
+		end
+	end
+	if enemy_heroes ~= nil then
+		for i = 1, #enemy_heroes do
+			if enemy_heroes[i]:GetAttackTarget() == hero then
+				total_damage = total_damage + enemy_heroes[i]:GetEstimatedDamageToTarget(true, hero, 100, DAMAGE_TYPE_ALL)
+			end
+		end
+	end
+	return total_damage / 100
 end
 
 SHOP_USE_DISTANCE = 200

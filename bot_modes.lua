@@ -103,7 +103,7 @@ end
 
 local function Retreat(bot, retreat_time)
 	bot.retreat = retreat_time
-	bot.ref:Action_MoveToLocation(RetreatLocation(bot):GetLocation())
+	bot.ref:Action_MoveToLocation(RetreatLocation(bot))
 end
 
 local function PushDesire(bot)
