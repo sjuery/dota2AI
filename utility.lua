@@ -118,3 +118,7 @@ function GetFountain()
 	end
 	return FOUNTAIN_DIRE
 end
+
+function GetUnitHealthPercentage(unit)
+	return unit:GetHealth() / unit:GetMaxHealth()
+end

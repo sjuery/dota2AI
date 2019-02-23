@@ -44,7 +44,7 @@ function FightPriority(bot)
 		end
 	end
 
-	local target_hp_percent = (target:GetHealth() / target:GetMaxHealth())
+	local target_hp_percent = GetUnitHealthPercentage(target)
 	if target_hp_percent < 0.2 and GetUnitToUnitDistance(bot.ref, targets[i]) < bot.ref:GetAttackRange() then
 		return {55, target}
 	elseif #heroes + 1 >= #enemy_heroes 

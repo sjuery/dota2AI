@@ -97,7 +97,7 @@ local function Metamorphosis(bot, enemy)
 		return false
 	end
 
-	if (enemy:GetHealth() / enemy:GetMaxHealth()) < 0.33 then
+	if GetUnitHealthPercentage(enemy) < 0.33 then
 		bot.ref:Action_UseAbility(Metamorphosis)
 	end
 end

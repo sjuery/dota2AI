@@ -52,7 +52,7 @@ function RetreatPriority(bot)
 		local enemy_heroes_small = bot.ref:GetNearbyHeroes(500, true, BOT_MODE_NONE)
 		-- Don't run away if we can probably kill them
 		if not (#enemy_heroes_small < #allied_heroes 
-			and (enemy_heroes_small[1]:GetHealth() / enemy_heroes_small[1]:GetMaxHealth()) * 1.1 < bot.hp_percent) 
+			and (GetUnitHealthPercentage(enemy_heroes_small[1]) * 1.1 < bot.hp_percent) 
 		then
 			if bot.hp_percent < 0.33 then
 				return {70, DotaTime() + 10}

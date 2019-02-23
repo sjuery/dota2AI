@@ -14,10 +14,6 @@ local buy_order = {
 	"item_mithril_hammer",
 	"item_mithril_hammer",
 	-- Scepter
-	"item_ogre_axe",
-	"item_point_booster",
-	"item_blade_of_alacrity",
-	"item_staff_of_wizardry"
 }
 
 SKILL_Q = "furion_sprout"
@@ -35,7 +31,7 @@ TALENT_7 = "special_bonus_unique_furion_3"
 TALENT_8 = "special_bonus_unique_furion"
 
 local ability_order = {
-	SKILL_E, SKILL_Q, SKILL_E, SKILL_W, SKILL_E,
+	SKILL_E, SKILL_W, SKILL_E, SKILL_Q, SKILL_E,
 	SKILL_R, SKILL_E, SKILL_W, SKILL_W, TALENT_1,
 	SKILL_W, SKILL_R, SKILL_Q, SKILL_Q, TALENT_4,
 	SKILL_Q, SKILL_R, TALENT_5, TALENT_7
@@ -53,13 +49,13 @@ function SpawnTrees(bot, enemy)
 	local summon_trees = bot.ref:GetAbilityByName(SKILL_Q)
 	local summon_treants = bot.ref:GetAbilityByName(SKILL_E)
 
-	if not summon_trees or bot.mp_current < summon_trees:GetManaCost()
+	if not summon_trees or not summon_treants or bot.mp_current < summon_trees:GetManaCost()
 		or not summon_trees:IsFullyCastable() or bot.ref:IsChanneling() or bot.ref:IsUsingAbility() then
 		return false
 	end
 
-	if (enemy:GetHealth() / enemy:GetMaxHealth()) < 0.33 then
-		bot.ref:Action_UseAbilityOnLocation(summon_trees, best_tree)
+	if GetUnitHealthPercentage(enemy) < 0.33 then
+		bot.ref:Action_UseAbilityOnLocation(summon_trees, enemy:GetLocation())
 		return true
 	end
 
@@ -76,7 +72,7 @@ function SummonTreants(bot)
 		return false
 	end
 
-	radius = 150 + summon_treants:GetLevel() * 75
+	radius = 75 + summon_treants:GetLevel() * 75
 	max_trees = 1 + summon_treants:GetLevel()
 	if treant_talent then
 		max_trees = max_trees + 4
@@ -111,8 +107,24 @@ function SummonTreants(bot)
 	return false
 end
 
+function NaturesWrath(bot, enemy)
+	local natures_wrath = bot.ref:GetAbilityByName(SKILL_R)
+
+	if not natures_wrath or bot.mp_current < natures_wrath:GetManaCost()
+		or not natures_wrath:IsFullyCastable() or bot.ref:IsChanneling() or bot.ref:IsUsingAbility() then
+		return false
+	end
+
+	if GetUnitHealthPercentage(enemy) < 0.33 then
+		bot.ref:Action_UseAbilityOnLocation(natures_wrath, enemy:GetLocation())
+		return true
+	end
+
+	return false
+end
+
 local function Fight(bot, enemy)
-	if SpawnTrees(bot, enemy) or SummonTreants(bot) then
+	if SpawnTrees(bot, enemy) or SummonTreants(bot) or NaturesWrath(bot, enemy) then
 		return
 	end
 	bot.ref:Action_AttackUnit(value, true)
@@ -130,31 +142,75 @@ function Think()
 	end
 end
 
+-- Treants
+
 local treant = {
 	["lane"] = GetStartingLane(1)
 }
 
+local function TreantFarmPriority(bot)
+	local enemy_creeps = bot.ref:GetNearbyLaneCreeps(1600, true)
+
+	if #enemy_creeps == 0 then
+		return {5, nil}
+	end
+
+	local target = enemy_creeps[1]
+	-- Find weakest target in range
+	for i = 1, #enemy_creeps do
+		if GetUnitToUnitDistance(bot.ref, enemy_creeps[i]) < 300
+			and enemy_creeps[i]:GetHealth() < target:GetHealth()
+		then
+			target = enemy_creeps[i]
+		end
+	end
+
+	return {40, target}
+end
+
+local function TreantFightPriority(bot)
+	local enemy_heroes = bot.ref:GetNearbyHeroes(1600, true, BOT_MODE_NONE)
+
+	if #enemy_heroes == 0 then
+		return {0, nil}
+	end
+
+	local target = enemy_heroes[1]
+	-- Find weakest target in range
+	for i = 1, #enemy_heroes do
+		local distance = GetUnitToUnitDistance(bot.ref, enemy_heroes[i])
+		if enemy_heroes[i]:WasRecentlyDamagedByAnyHero(1.0) and distance < 500 then
+			target = enemy_heroes[i]
+			break
+		elseif distance < 300
+			and enemy_heroes[i]:GetHealth() < target:GetHealth()
+		then
+			target = enemy_heroes[i]
+		end
+	end
+
+	return {60, target}
+end
+
+local function FollowPriority(bot)
+	local allied_heroes = bot.ref:GetNearbyHeroes(1600, false, BOT_MODE_NONE)
+	if #allied_heroes == 0 then
+		return {0, nil}
+	end
+
+	return {10, allied_heroes[1]:GetLocation()}
+end
+
+local function Follow(bot, target)
+	bot.ref:Action_MoveToLocation(target)
+end
+
 local treant_priority = {
 	["farm"] = DeepCopy(generic_priority["farm"]),
 	["fight"] = DeepCopy(generic_priority["fight"]),
-	["push"] = DeepCopy(generic_priority["push"])
+	["push"] = DeepCopy(generic_priority["push"]),
+	["follow"] = {FollowPriority, Follow}
 }
-
-function TreantFarmPriority(bot)
-	local enemy_creeps = bot.ref:GetNearbyLaneCreeps(1600, true)
-	if #enemy_creeps > 0 then
-		return {40, enemy_creeps[1]}
-	end
-	return {5, nil}
-end
-
-function TreantFightPriority(bot)
-	local enemy_heroes = bot.ref:GetNearbyHeroes(1600, true, BOT_MODE_NONE)
-	if #enemy_heroes > 0 then
-		return {60, enemy_heroes[1]}
-	end
-	return {0, nil}
-end
 
 treant_priority["farm"][1] = TreantFarmPriority
 treant_priority["fight"][1] = TreantFightPriority
