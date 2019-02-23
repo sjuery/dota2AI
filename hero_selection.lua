@@ -1,6 +1,6 @@
 carry_pool = {
 	"npc_dota_hero_terrorblade",
-	"npc_dota_hero_clinkz",
+	"npc_dota_hero_drow_ranger",
 	"npc_dota_hero_abyssal_underlord",
 	"npc_dota_hero_furion", -- Natures prophet
 	"npc_dota_hero_omniknight",
@@ -33,7 +33,6 @@ hero_pool = {
 	"npc_dota_hero_disruptor",
 	"npc_dota_hero_doom_bringer",
 	"npc_dota_hero_dragon_knight",
-	"npc_dota_hero_drow_ranger",
 	"npc_dota_hero_earth_spirit",
 	"npc_dota_hero_earthshaker",
 	"npc_dota_hero_elder_titan",

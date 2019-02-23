@@ -38,6 +38,12 @@ function UseItems(bot)
 		bot.ref:Action_UseAbility(mekansm)
 		return
 	end
+
+	-- Use Moonshard to gain buff
+	local moonshard = items["item_moon_shard"]
+	if moonshard ~= nil and moonshard:IsFullyCastable() then
+		bot.ref:Action_UseAbility(moonshard)
+	end
 end
 
 function UpKeep(bot)
