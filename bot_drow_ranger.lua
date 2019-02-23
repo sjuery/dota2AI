@@ -70,8 +70,7 @@ local bot = {
 	["lane"] = LANE_MID,
 	["retreat"] = 0,
 	["buy_order"] = buy_order,
-	["ability_order"] = ability_order,
-	["total_damage"] = TotalDamage(GetBot())
+	["ability_order"] = ability_order
 }
 
 function desireSilence(bot, silence)
