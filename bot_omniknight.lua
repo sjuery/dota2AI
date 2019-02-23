@@ -1,7 +1,7 @@
 require(GetScriptDirectory() .. "/bot_modes")
 require(GetScriptDirectory() .. "/utility")
 
-local desires = DeepCopy(generic_desires)
+local priority = DeepCopy(generic_priority)
 
 local buy_order = {
 	"item_courier",
@@ -57,13 +57,15 @@ local bot = {
 	["ability_order"] = ability_order
 }
 
-function desireQ(bot)
+function priorityQ(bot)
 	local abilityQ = bot.ref:GetAbilityByName(SKILL_Q)
 	local friendlyHeroes = bot.ref:GetNearbyHeroes(1600, false, BOT_MODE_NONE)
 	local lowestHealth = 100000
 	local lowestAlly = nil
 
-	if bot.ref:IsChanneling() or bot.ref:IsUsingAbility() or abilityQ:GetManaCost() >= bot.mp_current or #friendlyHeroes == 0 or not abilityQ:IsFullyCastable() then
+	if bot.ref:IsChanneling() or bot.ref:IsUsingAbility() or abilityQ:GetManaCost() >= bot.mp_current 
+		or #friendlyHeroes == 0 or not abilityQ:IsFullyCastable()
+	then
 		return
 	end
 
@@ -86,11 +88,11 @@ function desireQ(bot)
 		bot.ref:Action_MoveToLocation(lowestAlly:GetLocation())
 	end
 	bot.ref:Action_UseAbilityOnEntity(abilityQ, lowestAlly)
+	return
 end
 
 function Think()
-	-- print("am omni am going " .. bot.lane)
 	UpdateBot(bot)
-	Thonk(bot, desires)
-	desireQ(bot)
+	Thonk(bot, priority)
+	priorityQ(bot)
 end

@@ -1,7 +1,7 @@
 require(GetScriptDirectory() .. "/bot_modes")
 require(GetScriptDirectory() .. "/utility")
 
-local desires = DeepCopy(generic_desires)
+local priority = DeepCopy(generic_priority)
 
 local buy_order = {
 	"item_tango",
@@ -13,7 +13,7 @@ local buy_order = {
 	"item_blades_of_attack",
 	"item_mithril_hammer",
 	"item_mithril_hammer",
-	-- Scepter which he will probably never get..
+	-- Scepter
 	"item_ogre_axe",
 	"item_point_booster",
 	"item_blade_of_alacrity",
@@ -53,22 +53,25 @@ function SpawnTrees(bot, enemy)
 	local summon_trees = bot.ref:GetAbilityByName(SKILL_Q)
 	local summon_treants = bot.ref:GetAbilityByName(SKILL_E)
 
-	if not summon_trees:IsTrained() or bot.mp_current < summon_trees:GetManaCost()
+	if not summon_trees or bot.mp_current < summon_trees:GetManaCost()
 		or not summon_trees:IsFullyCastable() or bot.ref:IsChanneling() or bot.ref:IsUsingAbility() then
 		return false
 	end
 
 	if (enemy:GetHealth() / enemy:GetMaxHealth()) < 0.33 then
 		bot.ref:Action_UseAbilityOnLocation(summon_trees, best_tree)
+		return true
 	end
+
 	return false
 end
 
 function SummonTreants(bot)
 	local trees = bot.ref:GetNearbyTrees(1000)
 	local summon_treants = bot.ref:GetAbilityByName(SKILL_E)
-	local treant_talent = bot.ref:GetAbilityByName(TALENT_4):IsTrained()
-	if #trees == 0 or bot.mp_current < summon_treants:GetManaCost()
+	local treant_talent = bot.ref:GetAbilityByName(TALENT_4) ~= nil
+
+	if not summon_treants or #trees == 0 or bot.mp_current < summon_treants:GetManaCost()
 		or not summon_treants:IsFullyCastable() or bot.ref:IsChanneling() or bot.ref:IsUsingAbility() then
 		return false
 	end
@@ -109,45 +112,55 @@ function SummonTreants(bot)
 end
 
 local function Fight(bot, enemy)
-	if SpawnTrees(bot, enemy) then
-		return
-	end
-	if SummonTreants(bot) then
+	if SpawnTrees(bot, enemy) or SummonTreants(bot) then
 		return
 	end
 	bot.ref:Action_AttackUnit(value, true)
 end
 
-desires["fight"][2] = Fight
+priority["fight"][2] = Fight
 
 function Think()
+	local enemy_creeps = bot.ref:GetNearbyLaneCreeps(1600, true)
+	local enemy_heroes = bot.ref:GetNearbyHeroes(1600, true, BOT_MODE_NONE)
 	UpdateBot(bot)
-	Thonk(bot, desires)
-	if bot.mp_percent > 0.5 then
+	Thonk(bot, priority)
+	if bot.mp_percent > 0.5 and #enemy_creeps ~= 0 and #enemy_heroes ~= 0 then
 		SummonTreants(bot)
 	end
 end
 
 local treant = {
-	["ref"] = GetBot(),
-	["lane"] = GetStartingLane(1),
-	["retreat"] = 0,
+	["lane"] = GetStartingLane(1)
 }
 
-local treant_desires = DeepCopy(generic_desires)
-treant_desires["shop"] = nil
-treant_desires["heal"] = nil
-treant_desires["shop"] = nil
-treant_desires["rune"] = nil
-treant_desires["meme"] = nil
-treant_desires["farm"] = nil
+local treant_priority = {
+	["farm"] = DeepCopy(generic_priority["farm"]),
+	["fight"] = DeepCopy(generic_priority["fight"]),
+	["push"] = DeepCopy(generic_priority["push"])
+}
+
+function TreantFarmPriority(bot)
+	local enemy_creeps = bot.ref:GetNearbyLaneCreeps(1600, true)
+	if #enemy_creeps > 0 then
+		return {40, enemy_creeps[1]}
+	end
+	return {5, nil}
+end
+
+function TreantFightPriority(bot)
+	local enemy_heroes = bot.ref:GetNearbyHeroes(1600, true, BOT_MODE_NONE)
+	if #enemy_heroes > 0 then
+		return {60, enemy_heroes[1]}
+	end
+	return {0, nil}
+end
+
+treant_priority["farm"][1] = TreantFarmPriority
+treant_priority["fight"][1] = TreantFightPriority
 
 function MinionThink(treant_unit)
 	treant.ref = treant_unit
 	UpdateBot(treant)
-	Thonk(treant, treant_desires)
+	Thonk(treant, treant_priority)
 end
-
--- Active item usage.
--- Move code into folder of files.
--- Team think.

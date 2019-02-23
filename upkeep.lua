@@ -1,3 +1,5 @@
+require(GetScriptDirectory() .. "/utility")
+
 function UseItems(bot)
 	local allies = bot.ref:GetNearbyHeroes(1200, false, BOT_MODE_NONE)
 	local items = GetItems(bot)
@@ -14,8 +16,9 @@ function UseItems(bot)
 	-- Use phase boots for retreating, maybe one day for attacking.
 	local phase_boots = items["item_phase_boots"]
 	if phase_boots ~= nil and phase_boots:IsFullyCastable()
-		and bot.desire == "retreat" and bot.hp_percent < 0.33
+		and bot.priority == "retreat"
 	then
+		print("Using phase boots..")
 		bot.ref:Action_UseAbility(phase_boots)
 		return
 	end
@@ -26,36 +29,23 @@ function UseItems(bot)
 		and bot.hp_percent > 0.6 and (bot.mp_max - bot.mp_current) > 150
 	then
 		bot.ref:Action_UseAbility(soul_ring)
+		return
 	end
 
 	-- Use mekansm if allies in range, need to improve later
 	local mekansm = items["item_mekansm"]
 	if mekansm ~= nil and mekansm:IsFullyCastable() and #allies > 0 then
 		bot.ref:Action_UseAbility(mekansm)
+		return
 	end
 end
 
-local generic_buy_order = {
-	"item_tango",
-	"item_tango",
-	"item_flask",
-	"item_stout_shield",
-	"item_quelling_blade",
--- Power treads
-	"item_boots",
-	"item_boots_of_elves",
-	"item_gloves",
--- Armlet of Mordiggian
-	"item_helm_of_iron_will",
-	"item_boots_of_elves",
-	"item_blades_of_attack",
-	"item_recipe_armlet"
-}
-
 function UpKeep(bot)
 	if GetGlyphCooldown() == 0 then
-		if PotentialTowers(bot):TimeSinceDamagedByAnyHero() < 3 then
+		local tower = GetLaneTower(bot)
+		if tower and tower:TimeSinceDamagedByAnyHero() < 3 then
 			bot.ref:ActionImmediate_Glyph()
+			return
 		end
 	end
 
@@ -73,7 +63,7 @@ function UpKeep(bot)
 	end
 
 	-- Buy items
-	local buy_order = generic_buy_order
+	local buy_order = {}
 	if bot.buy_order ~= nil then
 		buy_order = bot.buy_order
 	end
@@ -97,6 +87,20 @@ function UpKeep(bot)
 				print("Buying: " .. item)
 				table.remove(buy_order, 1)
 			end
+			return
+		end
+	end
+
+	-- Buy TP scrolls or add to buy order
+	local slot = bot.ref:FindItemSlot("item_tpscroll")
+	local tp_scroll = bot.ref:GetItemInSlot(slot)
+	if not tp_scroll then
+		if GetUnitToLocationDistance(bot.ref, GetFountain()) < SHOP_USE_DISTANCE and bot.ref:GetGold() > 50 then
+			print("Buying tp scroll")
+			bot.ref:ActionImmediate_PurchaseItem("item_tpscroll")
+			return
+		elseif bot.buy_order and bot.buy_order[1] ~= "item_tpscroll" then
+			table.insert(bot.buy_order, 1, "item_tpscroll")
 			return
 		end
 	end
@@ -140,7 +144,7 @@ function UpKeep(bot)
 		if bot.ref:IsAlive()
 			and state ~= COURIER_STATE_DEAD
 			and state ~= COURIER_STATE_DELIVERING_ITEMS
-			and (bot.ref:GetStashValue() > 400 or bot.ref:GetCourierValue() > 0 or important_item)
+			and (bot.ref:GetStashValue() > 500 or bot.ref:GetCourierValue() > 0 or important_item)
 		then
 			bot.ref:ActionImmediate_Courier(courier, COURIER_ACTION_TAKE_AND_TRANSFER_ITEMS)
 			return
