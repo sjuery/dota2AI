@@ -1,3 +1,13 @@
+SHOP_USE_DISTANCE = 200
+SHOP_TYPE_NONE = 0
+SHOP_TYPE_SECRET = 1
+SHOP_TYPE_SIDE = 2
+SIDE_SHOP_TOP = Vector(-7220, 4430)
+SIDE_SHOP_BOT = Vector(7249, -4113)
+SECRET_SHOP_RADIANT = Vector(-4472, 1328)
+SECRET_SHOP_DIRE = Vector(4586, -1588)
+FOUNTAIN_RADIANT = Vector(-7093, -6542)
+FOUNTAIN_DIRE = Vector(7015, 6534)
 
 function DeepCopy(orig)
 	local orig_type = type(orig)
@@ -23,6 +33,8 @@ function GetDistance(a, b)
 end
 
 function UpdateBot(bot)
+    name = bot.ref:GetUnitName()
+	bot.name = string.sub(name, 15, string.len(name))
 	bot.hp_max = bot.ref:GetMaxHealth()
 	bot.hp_current =  bot.ref:GetHealth()
 	bot.hp_percent = bot.hp_current / bot.hp_max
@@ -76,7 +88,7 @@ function GetStartingLane(lane)
     return LANE_TOP
 end
 
-function PotentialTowers(bot)
+function GetLaneTower(bot)
 	if GetTower(GetTeam(), ((bot.lane - 1) * 3) + 0) ~= nil then
 		return GetTower(GetTeam(), ((bot.lane - 1) * 3) + 0)
 	elseif GetTower(GetTeam(), ((bot.lane - 1) * 3) + 1) ~= nil then
@@ -89,9 +101,9 @@ end
 
 function RetreatLocation(bot)
 	if GetTower(GetTeam(), ((bot.lane - 1) * 3) + 0) ~= nil then
-		return GetTower(GetTeam(), ((bot.lane - 1) * 3) + 1)
+		return GetTower(GetTeam(), ((bot.lane - 1) * 3) + 1):GetLocation()
 	elseif GetTower(GetTeam(), ((bot.lane - 1) * 3) + 1) ~= nil then
-		return GetTower(GetTeam(), ((bot.lane - 1) * 3) + 2)
+		return GetTower(GetTeam(), ((bot.lane - 1) * 3) + 2):GetLocation()
 	end
 
 	if GetTeam() == TEAM_RADIANT then
@@ -100,13 +112,9 @@ function RetreatLocation(bot)
 	return FOUNTAIN_DIRE
 end
 
-SHOP_USE_DISTANCE = 200
-SHOP_TYPE_NONE = 0
-SHOP_TYPE_SECRET = 1
-SHOP_TYPE_SIDE = 2
-SIDE_SHOP_TOP = Vector(-7220, 4430)
-SIDE_SHOP_BOT = Vector(7249, -4113)
-SECRET_SHOP_RADIANT = Vector(-4472, 1328)
-SECRET_SHOP_DIRE = Vector(4586, -1588)
-FOUNTAIN_RADIANT = Vector(-7093, -6542)
-FOUNTAIN_DIRE = Vector(7015, 6534)
+function GetFountain()
+	if GetTeam() == TEAM_RADIANT then
+		return FOUNTAIN_RADIANT
+	end
+	return FOUNTAIN_DIRE
+end

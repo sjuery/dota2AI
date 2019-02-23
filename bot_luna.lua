@@ -1,7 +1,7 @@
 require(GetScriptDirectory() .. "/bot_modes")
 require(GetScriptDirectory() .. "/utility")
 
-local desires = DeepCopy(generic_desires)
+local priority = DeepCopy(generic_priority)
 
 local buy_order = {
 	"item_tango",
@@ -45,5 +45,5 @@ local bot = {
 
 function Think()
 	UpdateBot(bot)
-	Thonk(bot, desires)
+	Thonk(bot, priority)
 end

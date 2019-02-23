@@ -1,7 +1,7 @@
 require(GetScriptDirectory() .. "/bot_modes")
 require(GetScriptDirectory() .. "/utility")
 
-local desires = DeepCopy(generic_desires)
+local priority = DeepCopy(generic_priority)
 
 local buy_order = {
 	"item_tango",
@@ -51,7 +51,7 @@ local bot = {
 	["buy_order"] = buy_order
 }
 
-function desireQ(bot)
+function priorityQ(bot)
 	local abilityQ = bot.ref:GetAbilityByName(SKILL_Q)
 	local aoe_heroes = bot.ref:FindAoELocation(true, true, bot.ref:GetLocation(), abilityQ:GetCastRange(), 400, abilityQ:GetSpecialValueFloat("delay_plus_castpoint_tooltip"), 0)
 	local aoe_minions = bot.ref:FindAoELocation(true, false, bot.ref:GetLocation(), abilityQ:GetCastRange(), 400, abilityQ:GetSpecialValueFloat("delay_plus_castpoint_tooltip"), 0)
@@ -69,7 +69,7 @@ function desireQ(bot)
 	end
 end
 
-function desireW(bot)
+function priorityW(bot)
 	local abilityW = bot.ref:GetAbilityByName(SKILL_W)
 	local aoe_heroes = bot.ref:FindAoELocation(true, true, bot.ref:GetLocation(), abilityW:GetCastRange(), 375, abilityW:GetSpecialValueFloat("delay_plus_castpoint_tooltip"), 0)
 	local aoe_minions = bot.ref:FindAoELocation(true, false, bot.ref:GetLocation(), abilityW:GetCastRange(), 375, abilityW:GetSpecialValueFloat("delay_plus_castpoint_tooltip"), 0)
@@ -94,13 +94,13 @@ function customFarm(bot, creep)
 	dest = GetLocationAlongLane(bot.lane, Min(1.0, front))
 	bot.ref:Action_MoveToLocation(dest)
 	bot.ref:Action_AttackUnit(creep, true)
-	desireQ(bot)
-	desireW(bot)
+	priorityQ(bot)
+	priorityW(bot)
 end
 
-desires["farm"][2] = customFarm
+priority["farm"][2] = customFarm
 
 function Think()
 	UpdateBot(bot)
-	Thonk(bot, desires)
+	Thonk(bot, priority)
 end
