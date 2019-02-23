@@ -2,7 +2,7 @@ require(GetScriptDirectory() .. "/bot_modes")
 require(GetScriptDirectory() .. "/utility")
 require(GetScriptDirectory() .. "/luna_desires")
 
-local desires = DeepCopy(generic_desires)
+local priority = DeepCopy(generic_priority)
 
 local buy_order = {
 	"item_tango",
@@ -211,9 +211,9 @@ local function Fight(bot, enemy)
 	bot.ref:Action_AttackUnit(value, true)
 end
 
-desires["fight"] = {FightDesire, Fight}
+priority["fight"] = {FightDesire, Fight}
 
 function Think()
 	UpdateBot(bot)
-	Thonk(bot, desires)
+	Thonk(bot, priority)
 end

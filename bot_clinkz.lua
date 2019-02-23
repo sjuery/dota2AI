@@ -1,17 +1,28 @@
 require(GetScriptDirectory() .. "/bot_modes")
 require(GetScriptDirectory() .. "/utility")
 
-local desires = DeepCopy(generic_desires)
+local priority = DeepCopy(generic_priority)
 
 local buy_order = {
 	"item_tango",
-	"item_flask",
-	"item_quelling_blade",
 	"item_tango",
+	"item_flask",
+	"item_clarity",
+	"item_blight_stone",
+	-- Power Treads
 	"item_boots",
-	"item_ring_of_regen",
-	"item_wind_lace"
-	-- Hammer time
+	"item_boots_of_elves",
+	"item_gloves",
+	-- Orchid Malevolence
+	-- -- Oblivion Staff
+	"item_sobi_mask",
+	"item_quarterstaff",
+	"item_robe",
+	-- -- Oblivion Staff
+	"item_sobi_mask",
+	"item_quarterstaff",
+	"item_robe",
+	"item_recipe_orchid"
 }
 
 SKILL_Q = "clinkz_strafe"
@@ -45,5 +56,5 @@ local bot = {
 
 function Think()
 	UpdateBot(bot)
-	Thonk(bot, desires)
+	Thonk(bot, priority)
 end

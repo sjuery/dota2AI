@@ -1,7 +1,7 @@
 require(GetScriptDirectory() .. "/bot_modes")
 require(GetScriptDirectory() .. "/utility")
 
-local desires = DeepCopy(generic_desires)
+local priority = DeepCopy(generic_priority)
 
 local buy_order = {
 	"item_tango",
@@ -63,18 +63,55 @@ local bot = {
 	["ability_order"] = ability_order
 }
 
-function desireQ(bot)
-	local abilityQ = bot.ref:GetAbilityByName(SKILL_Q)
+local function SummonImage()
+	local SummonImage = bot.ref:GetAbilityByName(SKILL_W)
+	if not SummonImage or bot.ref:IsChanneling() or bot.ref:IsUsingAbility() or SummonImage:GetManaCost() >= bot.mp_current 
+		or not SummonImage:IsFullyCastable()
+	then
+		return false
+	end
+
+	bot.ref:Action_UseAbility(SummonImage)
+	return true
+end
+
+local function SummonReflection(bot)
+	local SummonReflection = bot.ref:GetAbilityByName(SKILL_Q)
 	local enemy_heroes = bot.ref:GetNearbyHeroes(900, true, BOT_MODE_NONE)
 
-	if bot.ref:IsChanneling() or bot.ref:IsUsingAbility() or abilityQ:GetManaCost() >= bot.mp_current or #enemy_heroes == 0 or abilityQ:IsFullyCastable() == false then
+	if bot.ref:IsChanneling() or bot.ref:IsUsingAbility() or SummonReflection:GetManaCost() >= bot.mp_current
+		or #enemy_heroes < 2 or not SummonReflection:IsFullyCastable()
+	then
+		return false
+	end
+
+	bot.ref:Action_UseAbility(SummonReflection)
+	return true
+end
+
+local function Metamorphosis(bot, enemy)
+	local Metamorphosis = bot.ref:GetAbilityByName(SKILL_E)
+	if not Metamorphosis or bot.ref:IsChanneling() or bot.ref:IsUsingAbility() or Metamorphosis:GetManaCost() >= bot.mp_current
+		or not Metamorphosis:IsFullyCastable()
+	then
+		return false
+	end
+
+	if (enemy:GetHealth() / enemy:GetMaxHealth()) < 0.33 then
+		bot.ref:Action_UseAbility(Metamorphosis)
+	end
+end
+
+local function Fight(bot, enemy)
+	if SummonReflection(bot) or SummonImage(bot) or Metamorphosis(bot, enemy) then
 		return
 	end
-	bot.ref:Action_UseAbility(abilityQ)
+	bot.ref:Action_AttackUnit(value, true)
 end
+
+priority["fight"][2] = Fight
 
 function Think()
 	UpdateBot(bot)
-	Thonk(bot, desires)
-	desireQ(bot)
+	Thonk(bot, priority)
 end
