@@ -1,6 +1,6 @@
 require(GetScriptDirectory() .. "/bot_modes")
 require(GetScriptDirectory() .. "/utility")
-require(GetScriptDirectory() .. "/desires")
+require(GetScriptDirectory() .. "/luna_desires")
 
 local desires = DeepCopy(generic_desires)
 
