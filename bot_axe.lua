@@ -8,7 +8,10 @@ local buy_order = {
 	"item_flask",
 	"item_tango",
 	"item_boots",
-	"item_vanguard",
+	-- Vanguard
+	"item_stout_shield",
+	"item_ring_of_health",
+	"item_vitality_booster",
 	-- Tranquil Boots
 	" item_ring_of_regen",
 	"item_wind_lace",
@@ -77,7 +80,7 @@ local ability_order = {
 
 local bot = {
 	["ref"] = GetBot(),
-	["lane"] = LANE_MID,
+	["lane"] = GetStartingLane(1),
 	["retreat"] = 0,
 	["buy_order"] = buy_order,
 	["ability_order"] = ability_order

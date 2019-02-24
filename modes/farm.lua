@@ -4,6 +4,7 @@ function FarmPriority(bot)
 	local allied_creeps = bot.ref:GetNearbyLaneCreeps(1600, false)
 	local enemy_creeps = bot.ref:GetNearbyLaneCreeps(1600, true)
 	local enemy_heroes = bot.ref:GetNearbyHeroes(1000, true, BOT_MODE_NONE)
+	local damage = bot.ref:GetEstimatedDamageToTarget(true, weakest_enemy_creep, bot.ref:GetAttackSpeed(), DAMAGE_TYPE_PHYSICAL)
 
 	if #allied_creeps == 0 and #enemy_creeps == 0 then
 		return {10, nil}
@@ -30,17 +31,16 @@ function FarmPriority(bot)
 	end
 
 	if #enemy_creeps ~= 0
-		and lowest_enemy_hp < bot.ref:GetEstimatedDamageToTarget(true, weakest_enemy_creep, bot.ref:GetAttackSpeed(), DAMAGE_TYPE_PHYSICAL) - 5
+		and lowest_enemy_hp < damage - 5
 	then
 		return {50, weakest_enemy_creep}
 	elseif #allied_creeps ~= 0
-		and lowest_friendly_hp < bot.ref:GetEstimatedDamageToTarget(true, weakest_friendly_creep, bot.ref:GetAttackSpeed(), DAMAGE_TYPE_PHYSICAL) - 5
-	then
+		and lowest_friendly_hp < damage - 5 then
 		return {35, weakest_friendly_creep}
 	elseif #enemy_creeps ~= 0 and #enemy_heroes == 0 then
-		return {35, enemy_creeps[1]}
+		return {30, enemy_creeps[1]}
 	end
-	return {10, enemy_creeps[1]}
+	return {10, nil}
 end
 
 function Farm(bot, creep)

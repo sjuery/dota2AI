@@ -32,7 +32,7 @@ function RunePriority(bot)
 	elseif closest_rune then
 		return {55, closest_rune}
 	end
-	return {1, nil}
+	return {0, nil}
 end
 
 function Rune(bot, rune)

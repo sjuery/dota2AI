@@ -24,7 +24,7 @@ function PushPriority(bot)
 	if #enemy_towers == 0 and #enemy_barracks > 0 then
 		return {50, enemy_barracks[1]}
 	end
-	return {0, enemy_towers[1]}
+	return {10, enemy_towers[1]}
 end
 
 function Push(bot, enemy_tower)
