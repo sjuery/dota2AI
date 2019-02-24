@@ -24,7 +24,7 @@ function PushPriority(bot)
 	if #enemy_towers == 0 and #enemy_barracks > 0 then
 		return {50, enemy_barracks[1]}
 	end
-	return {2, enemy_towers[1]}
+	return {0, enemy_towers[1]}
 end
 
 function Push(bot, enemy_tower)
@@ -33,5 +33,7 @@ function Push(bot, enemy_tower)
 	front = Min(front, enemyfront)
 	dest = GetLocationAlongLane(bot.lane, Min(1.0, front))
 	bot.ref:Action_MoveToLocation(dest)
-	bot.ref:Action_AttackUnit(enemy_tower, true)
+	if enemy_tower ~= nil then
+		bot.ref:Action_AttackUnit(enemy_tower, true)
+	end
 end
