@@ -61,6 +61,9 @@ function FightPriority(bot)
 	return {0, nil}
 end
 
-function Fight(bot, value)
-	bot.ref:Action_AttackUnit(value, true)
+function Fight(bot, enemy)
+	if GetUnitToUnitDistance(bot.ref, enemy) > bot.ref:GetAttackRange() then
+		bot.ref:Action_MoveToLocation(enemy:GetLocation())
+	end
+	bot.ref:Action_AttackMove(enemy, true)
 end

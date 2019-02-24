@@ -103,8 +103,9 @@ function Heal(bot, params)
 
 	if heal_item == "shrine" then
 		bot.ref:Action_MoveToLocation(heal_target:GetLocation())
-		if GetUnitToUnitDistance(bot.ref, heal_target) < 400 and not bot.ref:HasModifier("modifier_flask_healing") then
-			print("Using to shrine to restore..")
+		if GetUnitToUnitDistance(bot.ref, heal_target) < 400
+			and not bot.ref:HasModifier("modifier_flask_healing") and not bot.ref:HasModifier("modifier_filler_heal")
+		then
 			bot.ref:Action_UseShrine(heal_target)
 		end
 		return
