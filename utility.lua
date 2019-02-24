@@ -100,12 +100,13 @@ function GetLaneTower(bot)
 end
 
 function RetreatLocation(bot)
-	-- Might re add later, for now retreat towards fountain
-	-- if GetTower(GetTeam(), ((bot.lane - 1) * 3) + 0) ~= nil then
-	-- 	return GetTower(GetTeam(), ((bot.lane - 1) * 3) + 1):GetLocation()
-	-- elseif GetTower(GetTeam(), ((bot.lane - 1) * 3) + 1) ~= nil then
-	-- 	return GetTower(GetTeam(), ((bot.lane - 1) * 3) + 2):GetLocation()
-	-- end
+	if GetTower(GetTeam(), ((bot.lane - 1) * 3) + 0) ~= nil and bot.ref:DistanceFromFountain() > 11500 then
+		return GetTower(GetTeam(), ((bot.lane - 1) * 3) + 0):GetLocation()
+	elseif GetTower(GetTeam(), ((bot.lane - 1) * 3) + 1) ~= nil and bot.ref:DistanceFromFountain() > 7000 then
+		return GetTower(GetTeam(), ((bot.lane - 1) * 3) + 1):GetLocation()
+	elseif GetTower(GetTeam(), ((bot.lane - 1) * 3) + 2) ~= nil  and bot.ref:DistanceFromFountain() > 3000 then
+		return GetTower(GetTeam(), ((bot.lane - 1) * 3) + 2):GetLocation()
+	end
 
 	if GetTeam() == TEAM_RADIANT then
 		return FOUNTAIN_RADIANT
