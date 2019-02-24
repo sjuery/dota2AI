@@ -59,11 +59,11 @@ local bot = {
 	["lane"] = GetStartingLane(0),
 	["retreat"] = 0,
 	["buy_order"] = buy_order,
-	["sell_order"] = {}
+	["sell_order"] = {},
 	["ability_order"] = ability_order
 }
 
-function Purification(bot)
+local function Purification(bot)
 	local purification = bot.ref:GetAbilityByName(SKILL_Q)
 	local allied_heroes = bot.ref:GetNearbyHeroes(1600, false, BOT_MODE_NONE)
 	local lowest_health = 10000000
@@ -98,13 +98,13 @@ function Purification(bot)
 	return true
 end
 
-function Grace(bot)
+local function Grace(bot)
 	local grace = bot.ref:GetAbilityByName(SKILL_W)
 	local allied_heroes = bot.ref:GetNearbyHeroes(1600, false, BOT_MODE_NONE)
 	local lowest_health = 10000000
 	local lowest_ally = nil
 
-	if not grace or bot.ref:IsChanneling() or bot.ref:IsUsingAbility() or grace:GetManaCost() >= bot.mp_current
+	if not grace:IsTrained() or bot.ref:IsChanneling() or bot.ref:IsUsingAbility() or grace:GetManaCost() >= bot.mp_current
 		or #allied_heroes == 0 or not grace:IsFullyCastable()
 	then
 		return false

@@ -60,12 +60,12 @@ local bot = {
 	["ability_order"] = ability_order
 }
 
-function SpawnTrees(bot, enemy)
+local function SpawnTrees(bot, enemy)
 	local summon_trees = bot.ref:GetAbilityByName(SKILL_Q)
 	local summon_treants = bot.ref:GetAbilityByName(SKILL_E)
 
-	if not summon_trees or not summon_treants or bot.mp_current < summon_trees:GetManaCost()
-		or not summon_trees:IsFullyCastable() or bot.ref:IsChanneling() or bot.ref:IsUsingAbility() then
+	if not summon_trees:IsTrained() or not summon_treants:IsTrained() or bot.mp_current < summon_trees:GetManaCost()
+		or not summon_trees:IsFullyCastable() or not summon_treants:IsFullyCastable() or bot.ref:IsChanneling() or bot.ref:IsUsingAbility() then
 		return false
 	end
 
@@ -77,12 +77,12 @@ function SpawnTrees(bot, enemy)
 	return false
 end
 
-function SummonTreants(bot)
+local function SummonTreants(bot)
 	local trees = bot.ref:GetNearbyTrees(1000)
 	local summon_treants = bot.ref:GetAbilityByName(SKILL_E)
 	local treant_talent = bot.ref:GetAbilityByName(TALENT_4) ~= nil
 
-	if not summon_treants or #trees == 0 or bot.mp_current < summon_treants:GetManaCost()
+	if not summon_treants:IsTrained() or #trees == 0 or bot.mp_current < summon_treants:GetManaCost()
 		or not summon_treants:IsFullyCastable() or bot.ref:IsChanneling() or bot.ref:IsUsingAbility() then
 		return false
 	end
@@ -122,10 +122,10 @@ function SummonTreants(bot)
 	return false
 end
 
-function NaturesWrath(bot, enemy)
+local function NaturesWrath(bot, enemy)
 	local natures_wrath = bot.ref:GetAbilityByName(SKILL_R)
 
-	if not natures_wrath or bot.mp_current < natures_wrath:GetManaCost()
+	if not natures_wrath:IsTrained() or bot.mp_current < natures_wrath:GetManaCost()
 		or not natures_wrath:IsFullyCastable() or bot.ref:IsChanneling() or bot.ref:IsUsingAbility() then
 		return false
 	end
@@ -138,14 +138,14 @@ function NaturesWrath(bot, enemy)
 	return false
 end
 
-local function Fight(bot, enemy)
+local function CustomFight(bot, enemy)
 	if SpawnTrees(bot, enemy) or SummonTreants(bot) or NaturesWrath(bot, enemy) then
 		return
 	end
 	bot.ref:Action_AttackUnit(value, true)
 end
 
-priority["fight"][2] = Fight
+priority["fight"][2] = CustomFight
 
 function Think()
 	local enemy_creeps = bot.ref:GetNearbyLaneCreeps(1600, true)

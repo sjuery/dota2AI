@@ -25,7 +25,7 @@ function UseItems(bot)
 
 	-- Use blade mail
 	local blade_mail = items["item_blade_mail"]
-	if blade_mail ~= nil and blade_mail:GetManaCost() > bot.mp_current and blade_mail:IsFullyCastable()
+	if blade_mail ~= nil and blade_mail:GetManaCost() <= bot.mp_current and blade_mail:IsFullyCastable()
 		and bot.ref:WasRecentlyDamagedByAnyHero(0.2)
 	then
 		print("Using blade mail..")
@@ -52,7 +52,7 @@ function UseItems(bot)
 
 	-- Use manta style if fighting
 	local manta_style = items["item_manta"]
-	if bot.priority == "fight" and manta_style ~= nil and manta_style:GetManaCost() > bot.mp_current and manta_style:IsFullyCastable() then
+	if bot.priority == "fight" and manta_style ~= nil and manta_style:GetManaCost() <= bot.mp_current and manta_style:IsFullyCastable() then
 		bot.ref:Action_UseAbility(manta_style)
 	end
 
@@ -100,14 +100,6 @@ function UpKeep(bot)
 		buy_order = bot.buy_order
 	end
 
-	local items = GetItems(bot)
-
-	if (items["item_stout_shield"] and buy_order[1] == "item_stout_shield")
-		or (items["item_quelling_blade"] and buy_order[1] == "item_quelling_blade")
-	then
-		table.remove(buy_order, 1)
-	end
-
 	if buy_order and #buy_order ~= 0 then
 		local item = buy_order[1]
 		local cost = GetItemCost(item)
@@ -132,17 +124,12 @@ function UpKeep(bot)
 		end
 	end
 
-	-- Buy TP scrolls or add to buy order
+	-- Add TP scrolls to buy order if needed
 	local slot = bot.ref:FindItemSlot("item_tpscroll")
 	local tp_scroll = bot.ref:GetItemInSlot(slot)
 	if not tp_scroll then
-		if GetUnitToLocationDistance(bot.ref, GetFountain()) < SHOP_USE_DISTANCE and bot.ref:GetGold() > 50 then
-			print("Buying tp scroll")
-			bot.ref:ActionImmediate_PurchaseItem("item_tpscroll")
-			return
-		elseif bot.buy_order and bot.buy_order[1] ~= "item_tpscroll" then
+		if bot.buy_order and bot.buy_order[1] ~= "item_tpscroll" then
 			table.insert(bot.buy_order, 1, "item_tpscroll")
-			return
 		end
 	end
 
@@ -202,7 +189,7 @@ function UpKeep(bot)
 		sell_order = bot.buy_order
 	end
 
-	items = GetItems(bot)
+	local items = GetItems(bot)
 	-- Sell old items
 	if DotaTime() > 800 and empty_slot == nil and #sell_order > 0
 		and bot.ref:DistanceFromFountain() < SHOP_USE_DISTANCE

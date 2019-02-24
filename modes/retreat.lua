@@ -47,6 +47,10 @@ function RetreatPriority(bot)
 		return {60, DotaTime() + 5}
 	end
 
+	if #enemy_heroes > #allied_heroes + 2 then
+		return {80, DotaTime() + 5}
+	end
+
 	if #enemy_heroes > #allied_heroes + 1 then
 		return {60, DotaTime() + 5}
 	end
