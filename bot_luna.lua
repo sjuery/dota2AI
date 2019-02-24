@@ -78,53 +78,54 @@ local bot = {
 }
 
 
-function focus_target(enemy_heroes)
-	local lowest_health = 100000
-	local lowest_enemy = nil
+-- function focus_target(enemy_heroes)
+-- 	local lowest_health = 100000
+-- 	local lowest_enemy = nil
 
-	for i = 1, #enemy_heroes do
-		if lowest_health > enemy_heroes[i]:GetHealth() then
-			lowest_health = enemy_heroes[i]:GetHealth()
-			lowest_enemy = enemy_heroes[i]
-		end
-	end
-	return lowest_enemy
-end
+-- 	for i = 1, #enemy_heroes do
+-- 		if lowest_health > enemy_heroes[i]:GetHealth() then
+-- 			lowest_health = enemy_heroes[i]:GetHealth()
+-- 			lowest_enemy = enemy_heroes[i]
+-- 		end
+-- 	end
+-- 	return lowest_enemy
+-- end
 
-function LucentBeam(bot)
+function LucentBeam(bot, enemy)
+
 	local cast_range = nil
-	local enemy_heroes = nil
 	local lowest_enemy = nil
 
 	local cast_beam = bot.ref:GetAbilityByName(SKILL_Q)
-	-- print("Hello cast_beam = "..cast_beam)
+
 	if cast_beam == nil then
 		return false
-	elseif bot.mp_current < cast_beam:GetManaCost()
+	elseif bot.mp_current < (cast_beam:GetManaCost() * 2)
 		or not cast_beam:IsFullyCastable()
 		or bot.ref:IsChanneling()
 		or bot.ref:IsUsingAbility()
 		then
 		return false
 	else
-		cast_range = cast_beam:GetCastRange()
-		enemy_heroes = bot.ref:GetNearbyHeroes(cast_range, true, BOT_MODE_NONE)
+		cast_range = (cast_beam:GetCastRange() * 0.75)
+		-- enemy_heroes = bot.ref:GetNearbyHeroes(cast_range, true, BOT_MODE_NONE)
 	end
 
-	if enemy_heroes == nil then
-		return false
-	end
-	lowest_enemy = focus_target(enemy_heroes)
-	if lowest_enemy ~= nil
-		and lowest_enemy:GetHealth() <=  (lowest_enemy:GetMaxHealth() * 0.75) then
+	-- if enemy_he== nil then
+		-- return false
+	-- end
+
+	-- lowest_enemy = focus_target(enemy)
+	if enemy ~= nil
+		and enemy:GetHealth() <=  (enemy:GetMaxHealth() * 0.75) then
 		print("Casting LucentBeam")
-		bot.ref:Action_UseAbilityOnEntity(cast_beam,lowest_enemy)
+		bot.ref:Action_UseAbilityOnEntity(cast_beam, enemy)
 		return true
 	end
 	return false
 end
 
-function Eclipse(bot)
+function Eclipse(bot, enemy)
 	local cast_eclipse = bot.ref:GetAbilityByName(SKILL_R)
 
 	if cast_eclipse == nil then
@@ -137,19 +138,21 @@ function Eclipse(bot)
 		return false
 	else
 		local cast_range = cast_eclipse:GetCastRange()
-		local enemy_heroes = bot.ref:GetNearbyHeroes(cast_range, true, BOT_MODE_NONE)
+		-- local enemy_heroes = bot.ref:GetNearbyHeroes(cast_range, true, BOT_MODE_NONE)
 	end
 
-	if enemy_heroes == nil then
-		return false
-	end
-
-	if #enemy_heroes > 0 then
+	-- if enemy_heroes == nil then
+		-- return false
+	-- end
+	if enemy ~= nil then
 		print("Casting Eclipse")
-		bot.ref:Action_UseAbility(SKILL_R)
-		UseItems(bot)
+		bot.ref:Action_UseAbility(cast_eclipse)
+		while enemy:IsAlive() do 
+			Action_MoveToUnit(enemy)
+		-- Use manta if UseItems is called..
+		end
 		return true
-	end 
+	end
 	return false
 end
 
@@ -213,13 +216,19 @@ end
 -- end
 
 local function Fight(bot, enemy)
-	if LucentBeam(bot) then
+	local manta = bot.ref:FndItemSlot("item_manta")
+	print(manta)
+	if manta ~= nil and manta:IsFullyCastable() then
+		bot.ref:Action_UseAbility(manta)
 		return
 	end
-	if Eclipse(bot) then
+	if Eclipse(bot, enemy) then
 		return
 	end
-	bot.ref:Action_AttackUnit(value, true)
+	if LucentBeam(bot, enemy) then
+		return
+	end
+	bot.ref:Action_AttackUnit(enemy, true)
 end
 
 priority["fight"][2] = Fight
