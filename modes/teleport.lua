@@ -25,7 +25,7 @@ function TeleportPriority(bot)
 
 	local target = GetFountain()
 
-	allied_towers = bot.ref:GetNearbyTowers(300, false)
+	allied_towers = GetNearbyVisibleTowers(bot, 300, false)
 	if #allied_towers > 0 and bot.hp_percent < 0.33 then
 		return {80, {tp_scroll, target}}
 	end

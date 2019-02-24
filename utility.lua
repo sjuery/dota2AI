@@ -120,6 +120,35 @@ function GetFountain()
 	return FOUNTAIN_DIRE
 end
 
+function GetUnitHealthPercentage(unit)
+	return unit:GetHealth() / unit:GetMaxHealth()
+end
+
+-- GetNearbyVisibleTowers(bot, 1600, true)
+-- GetNearbyVisibleBarracks(bot, 1600, true)
+
+function GetNearbyVisibleTowers(bot, radius, enemy)
+	local visible_towers = {}
+	local towers = bot.ref:GetNearbyTowers(1600, enemy)
+	for i = 1, #towers do
+		if towers[i]:GetHealth() > 0 then
+			table.insert(visible_towers, towers[i])
+		end
+	end
+	return visible_towers
+end
+
+function GetNearbyVisibleBarracks(bot, radius, enemy)
+	local visible_barracks = {}
+	local barracks = bot.ref:GetNearbyBarracks(radius, enemy)
+	for i = 1, #barracks do
+		if barracks[i]:GetHealth() > 0 then
+			table.insert(visible_barracks, barracks[i])
+		end
+	end
+	return visible_barracks
+end
+
 function ShouldTrade(bot, target)
 	if (bot.hp_current / bot.total_damage) > TimeToLive(target) then
 		return 1
@@ -134,7 +163,7 @@ end
 function TotalDamage(hero)
 	local total_damage = 0
 	local enemy_creeps = hero:GetNearbyCreeps(500, true)
-	local enemy_towers = hero:GetNearbyTowers(950, true)
+	local enemy_towers = GetNearbyVisibleTowers(hero, 950, true)
 	local enemy_heroes = hero:GetNearbyHeroes(1600, true, BOT_MODE_NONE)
 
 	if enemy_creeps ~= nil then

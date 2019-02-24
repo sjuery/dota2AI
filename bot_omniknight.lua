@@ -9,7 +9,6 @@ local buy_order = {
 	"item_tango",
 	"item_clarity",
 	"item_clarity",
-	"item_branches",
 	"item_stout_shield",
 	-- Soul Ring
 	"item_gauntlets",
@@ -19,13 +18,19 @@ local buy_order = {
 	-- Mage boots
 	"item_boots",
 	"item_energy_booster",
-	-- Headress
+	-- Echo Sabre
+	"item_sobi_mask",
+	"item_quarterstaff",
+	"item_robe",
+	"item_ogre_axe",
+	-- Vanguard
+	"item_vitality_booster",
 	"item_ring_of_regen",
-	"item_recipe_headdress",
-	-- Mekansm
-	"item_buckler",
-	"item_recipe_mekansm",
-	"item_recipe_guardian_greaves"
+	-- Abyssal Blade
+	"item_mithril_hammer",
+	"item_belt_of_strength",
+	"item_recipe_basher",
+	"item_recipe_abyssal_blade"
 }
 
 SKILL_Q = "omniknight_purification"
@@ -54,45 +59,84 @@ local bot = {
 	["lane"] = GetStartingLane(0),
 	["retreat"] = 0,
 	["buy_order"] = buy_order,
+	["sell_order"] = {},
 	["ability_order"] = ability_order
 }
 
-function priorityQ(bot)
-	local abilityQ = bot.ref:GetAbilityByName(SKILL_Q)
-	local friendlyHeroes = bot.ref:GetNearbyHeroes(1600, false, BOT_MODE_NONE)
-	local lowestHealth = 100000
-	local lowestAlly = nil
+local function Purification(bot)
+	local purification = bot.ref:GetAbilityByName(SKILL_Q)
+	local allied_heroes = bot.ref:GetNearbyHeroes(1600, false, BOT_MODE_NONE)
+	local lowest_health = 10000000
+	local lowest_ally = nil
 
-	if bot.ref:IsChanneling() or bot.ref:IsUsingAbility() or abilityQ:GetManaCost() >= bot.mp_current 
-		or #friendlyHeroes == 0 or not abilityQ:IsFullyCastable()
+	if bot.ref:IsChanneling() or bot.ref:IsUsingAbility() or purification:GetManaCost() >= bot.mp_current
+		or #allied_heroes == 0 or not purification:IsFullyCastable()
 	then
-		return
+		return false
 	end
 
-	for i = 1, #friendlyHeroes do
-		if lowestHealth > friendlyHeroes[i]:GetHealth() then
-			lowestHealth = friendlyHeroes[i]:GetHealth()
-			lowestAlly = friendlyHeroes[i]
+	for i = 1, #allied_heroes do
+		if lowest_health > allied_heroes[i]:GetHealth() then
+			lowest_health = allied_heroes[i]:GetHealth()
+			lowest_ally = allied_heroes[i]
 		end
 	end
 
-	if ((bot.hp_max - bot.hp_current) < 300) and (lowestAlly:GetMaxHealth() - lowestHealth) < 300 then
-		return
+	if bot.hp_max - bot.hp_current < 300 and lowest_ally:GetMaxHealth() - lowest_health < 300 then
+		return false
 	end
 
-	if lowestAlly == nil then
-		bot.ref:Action_UseAbilityOnEntity(abilityQ, bot.ref)
+	if lowest_ally == nil then
+		bot.ref:Action_UseAbilityOnEntity(purification, bot.ref)
 	end
 
-	if GetUnitToUnitDistance(bot.ref, lowestAlly) >= 400 then
-		bot.ref:Action_MoveToLocation(lowestAlly:GetLocation())
+	if GetUnitToUnitDistance(bot.ref, lowest_ally) >= 400 then
+		bot.ref:Action_MoveToLocation(lowest_ally:GetLocation())
 	end
-	bot.ref:Action_UseAbilityOnEntity(abilityQ, lowestAlly)
-	return
+
+	bot.ref:Action_UseAbilityOnEntity(purification, lowest_ally)
+	return true
+end
+
+local function Grace(bot)
+	local grace = bot.ref:GetAbilityByName(SKILL_W)
+	local allied_heroes = bot.ref:GetNearbyHeroes(1600, false, BOT_MODE_NONE)
+	local lowest_health = 10000000
+	local lowest_ally = nil
+
+	if not grace:IsTrained() or bot.ref:IsChanneling() or bot.ref:IsUsingAbility() or grace:GetManaCost() >= bot.mp_current
+		or #allied_heroes == 0 or not grace:IsFullyCastable()
+	then
+		return false
+	end
+
+	for i = 1, #allied_heroes do
+		if lowest_health > allied_heroes[i]:GetHealth() then
+			lowest_health = allied_heroes[i]:GetHealth()
+			lowest_ally = allied_heroes[i]
+		end
+	end
+
+	if bot.hp_max - bot.hp_current < 300 and lowest_ally:GetMaxHealth() - lowest_health < 300 then
+		return false
+	end
+
+	if lowest_ally == nil then
+		bot.ref:Action_UseAbilityOnEntity(grace, bot.ref)
+	end
+
+	if GetUnitToUnitDistance(bot.ref, lowest_ally) >= 400 then
+		bot.ref:Action_MoveToLocation(lowest_ally:GetLocation())
+	end
+
+	bot.ref:Action_UseAbilityOnEntity(grace, lowest_ally)
+	return true
 end
 
 function Think()
 	UpdateBot(bot)
 	Thonk(bot, priority)
-	priorityQ(bot)
+	if Purification(bot) or Grace(bot) then
+		return
+	end
 end
