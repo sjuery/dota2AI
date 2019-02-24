@@ -40,7 +40,7 @@ function FarmPriority(bot)
 	elseif #enemy_creeps ~= 0 and #enemy_heroes == 0 then
 		return {35, enemy_creeps[1]}
 	end
-	return {10, enemy_creeps[1]}
+	return {0, nil}
 end
 
 function Farm(bot, creep)

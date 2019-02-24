@@ -89,26 +89,29 @@ function GetStartingLane(lane)
 end
 
 function GetLaneTower(bot)
-	if GetTower(GetTeam(), ((bot.lane - 1) * 3) + 0) ~= nil then
-		return GetTower(GetTeam(), ((bot.lane - 1) * 3) + 0)
-	elseif GetTower(GetTeam(), ((bot.lane - 1) * 3) + 1) ~= nil then
-		return GetTower(GetTeam(), ((bot.lane - 1) * 3) + 1)
-	elseif GetTower(GetTeam(), ((bot.lane - 1) * 3) + 2) ~= nil then
-		return GetTower(GetTeam(), ((bot.lane - 1) * 3) + 2)
+	local team = GetTeam()
+
+	if GetTower(team, ((bot.lane - 1) * 3) + 0) ~= nil then
+		return GetTower(team, ((bot.lane - 1) * 3) + 0)
+	elseif GetTower(team, ((bot.lane - 1) * 3) + 1) ~= nil then
+		return GetTower(team, ((bot.lane - 1) * 3) + 1)
+	elseif GetTower(team, ((bot.lane - 1) * 3) + 2) ~= nil then
+		return GetTower(team, ((bot.lane - 1) * 3) + 2)
 	end
 	return nil
 end
 
 function RetreatLocation(bot)
-	if GetTower(GetTeam(), ((bot.lane - 1) * 3) + 0) ~= nil and bot.ref:DistanceFromFountain() > 11500 then
-		return GetTower(GetTeam(), ((bot.lane - 1) * 3) + 0):GetLocation()
-	elseif GetTower(GetTeam(), ((bot.lane - 1) * 3) + 1) ~= nil and bot.ref:DistanceFromFountain() > 7000 then
-		return GetTower(GetTeam(), ((bot.lane - 1) * 3) + 1):GetLocation()
-	elseif GetTower(GetTeam(), ((bot.lane - 1) * 3) + 2) ~= nil  and bot.ref:DistanceFromFountain() > 3000 then
-		return GetTower(GetTeam(), ((bot.lane - 1) * 3) + 2):GetLocation()
+	local team = GetTeam()
+	if GetTower(team, ((bot.lane - 1) * 3) + 0) ~= nil and bot.ref:DistanceFromFountain() > 11500 then
+		return GetTower(team, ((bot.lane - 1) * 3) + 0):GetLocation()
+	elseif GetTower(team, ((bot.lane - 1) * 3) + 1) ~= nil and bot.ref:DistanceFromFountain() > 7000 then
+		return GetTower(team, ((bot.lane - 1) * 3) + 1):GetLocation()
+	elseif GetTower(team, ((bot.lane - 1) * 3) + 2) ~= nil  and bot.ref:DistanceFromFountain() > 3000 then
+		return GetTower(team, ((bot.lane - 1) * 3) + 2):GetLocation()
 	end
 
-	if GetTeam() == TEAM_RADIANT then
+	if team == TEAM_RADIANT then
 		return FOUNTAIN_RADIANT
 	end
 	return FOUNTAIN_DIRE
@@ -124,9 +127,6 @@ end
 function GetUnitHealthPercentage(unit)
 	return unit:GetHealth() / unit:GetMaxHealth()
 end
-
--- GetNearbyVisibleTowers(bot, 1600, true)
--- GetNearbyVisibleBarracks(bot, 1600, true)
 
 function GetNearbyVisibleTowers(bot, radius, enemy)
 	local visible_towers = {}
