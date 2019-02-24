@@ -44,6 +44,12 @@ function UseItems(bot)
 	if manta ~= nil and manta:IsFullyCastable() then
 		bot.ref:Action_UseAbility(manta)
 		return
+  end
+
+	-- Use Moonshard to gain buff
+	local moonshard = items["item_moon_shard"]
+	if moonshard ~= nil and moonshard:IsFullyCastable() then
+		bot.ref:Action_UseAbility(moonshard)
 	end
 end
 
