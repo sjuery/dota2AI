@@ -10,10 +10,25 @@ local buy_order = {
 	"item_blight_stone",
 	"item_boots",
 	"item_chainmail",
+	-- Maelstrom
+	"item_mithril_hammer",
+	"item_javelin",
+	-- Desolator
 	"item_blades_of_attack",
 	"item_mithril_hammer",
 	"item_mithril_hammer",
-	-- Scepter
+	-- Vladmir's Offering
+	"item_lifesteal",
+	"item_sobi_mask",
+	"item_recipe_vladmir",
+	-- Assault Cuirass
+	"item_hyperstone",
+	"item_chainmail",
+	"item_platemail",
+	"item_recipe_assault",
+	-- Moonstone
+	"item_hyperstone",
+	"item_hyperstone"
 }
 
 SKILL_Q = "furion_sprout"
@@ -115,7 +130,7 @@ function NaturesWrath(bot, enemy)
 		return false
 	end
 
-	if GetUnitHealthPercentage(enemy) < 0.33 then
+	if GetUnitHealthPercentage(enemy) < 0.70 then
 		bot.ref:Action_UseAbilityOnLocation(natures_wrath, enemy:GetLocation())
 		return true
 	end

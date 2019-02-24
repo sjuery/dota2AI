@@ -9,7 +9,7 @@ function FightPriority(bot)
 
 	local targets = {}
 	if #enemy_heroes > 0 then
-		local towers = bot.ref:GetNearbyTowers(1600, true)
+		local towers = GetNearbyVisibleTowers(bot, 1600, true)
 
 		-- Search for nearby enemy heroes (Not under enemy towers)
 		for i = 1, #enemy_heroes do
@@ -45,17 +45,17 @@ function FightPriority(bot)
 	end
 
 	local target_hp_percent = GetUnitHealthPercentage(target)
-	if target_hp_percent < 0.2 and GetUnitToUnitDistance(bot.ref, targets[i]) < bot.ref:GetAttackRange() then
-		return {55, target}
+	if target_hp_percent < 0.2 then
+		return {60, target}
 	elseif #heroes + 1 >= #enemy_heroes 
 		and target_hp_percent < 0.33
-		and bot.hp_current > target_hp_percent * 1.4
+		and bot.hp_current >= target_hp_percent * 1.2
 	then
 		return {50, target}
 	elseif #heroes + 1 == #enemy_heroes and #allied_creeps + 1 >= #enemy_creeps then
 		return {30, target}
 	elseif #heroes + 1 > #enemy_heroes then
-		return {45, target}
+		return {55, target}
 	end
 
 	return {0, nil}

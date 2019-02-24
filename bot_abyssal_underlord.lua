@@ -15,6 +15,9 @@ local buy_order = {
 	"item_chainmail",
 	"item_robe",
 	"item_broadsword",
+	-- Vanguard
+	"item_vitality_booster",
+	"item_ring_of_regen",
 	-- Scepter
 	"item_ogre_axe",
 	"item_point_booster",

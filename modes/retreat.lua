@@ -1,15 +1,19 @@
 require(GetScriptDirectory() .. "../utility")
 
 function RetreatPriority(bot)
+	if (bot.ref:HasModifier("modifier_fountain_aura") or bot.ref:HasModifier("modifier_fountain_aura_buff")) then
+		bot.retreat = 0
+	end
+
 	if bot.retreat > GameTime() then
 		return {100, bot.retreat}
 	end
 
 	local allied_creeps = bot.ref:GetNearbyLaneCreeps(1600, false)
-	local enemy_towers = bot.ref:GetNearbyTowers(1600, true)
+	local enemy_towers = GetNearbyVisibleTowers(bot, 1600, true)
 
 	local enemy_creeps = bot.ref:GetNearbyLaneCreeps(500, true)
-	local allied_heroes = bot.ref:GetNearbyHeroes(500, true, BOT_MODE_NONE)
+	local allied_heroes = bot.ref:GetNearbyHeroes(1000, true, BOT_MODE_NONE)
 	local enemy_heroes = bot.ref:GetNearbyHeroes(1000, true, BOT_MODE_NONE)
 
 	local other_creeps = bot.ref:GetNearbyCreeps(800, false)
@@ -22,7 +26,7 @@ function RetreatPriority(bot)
 		-- Search for nearby allied creeps to take tower hits
 		for i = 1, #allied_creeps do
 			for i = 1, #enemy_towers do
-				if GetUnitToUnitDistance(allied_creeps[i], enemy_towers[i]) < 700 then
+				if GetUnitToUnitDistance(allied_creeps[i], enemy_towers[i]) < 900 then
 					table.insert(meatshield_creeps, allied_creeps[i])
 				end
 			end
@@ -51,11 +55,10 @@ function RetreatPriority(bot)
 	if bot.hp_percent < 0.4 then
 		local enemy_heroes_small = bot.ref:GetNearbyHeroes(500, true, BOT_MODE_NONE)
 		-- Don't run away if we can probably kill them
-		if not (#enemy_heroes_small < #allied_heroes 
-			and (GetUnitHealthPercentage(enemy_heroes_small[1]) * 1.1 < bot.hp_percent) 
+		if not (#enemy_heroes_small > 1 and GetUnitHealthPercentage(enemy_heroes_small[1]) * 1.1 < bot.hp_percent)
 		then
 			if bot.hp_percent < 0.33 then
-				return {70, DotaTime() + 10}
+				return {70, DotaTime() + 100}
 			end
 			return {55, DotaTime() + 7}
 		end

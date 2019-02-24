@@ -22,6 +22,10 @@ local buy_order = {
 	"item_boots_of_elves",
 	"item_boots_of_elves",
 	"item_ogre_axe",
+	-- Blade mail
+	"item_chainmail",
+	"item_robe",
+	"item_broadsword",
 	-- Yasha
 	"item_boots_of_elves",
 	"item_blade_of_alacrity",
@@ -80,7 +84,7 @@ local function SummonReflection(bot)
 	local enemy_heroes = bot.ref:GetNearbyHeroes(900, true, BOT_MODE_NONE)
 
 	if bot.ref:IsChanneling() or bot.ref:IsUsingAbility() or SummonReflection:GetManaCost() >= bot.mp_current
-		or #enemy_heroes < 2 or not SummonReflection:IsFullyCastable()
+		or #enemy_heroes >= 2 or not SummonReflection:IsFullyCastable()
 	then
 		return false
 	end
@@ -97,7 +101,7 @@ local function Metamorphosis(bot, enemy)
 		return false
 	end
 
-	if GetUnitHealthPercentage(enemy) < 0.33 then
+	if GetUnitHealthPercentage(enemy) < 0.5 then
 		bot.ref:Action_UseAbility(Metamorphosis)
 	end
 end

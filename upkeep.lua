@@ -4,7 +4,7 @@ function UseItems(bot)
 	local allies = bot.ref:GetNearbyHeroes(1200, false, BOT_MODE_NONE)
 	local items = GetItems(bot)
 
-	-- Use Mana boots
+	-- Use mana boots
 	local arcane_boots = items["item_arcane_boots"]
 	if arcane_boots ~= nil and arcane_boots:IsFullyCastable()
 		and bot.mp_max - bot.mp_current > 160 and #allies > 0
@@ -23,20 +23,53 @@ function UseItems(bot)
 		return
 	end
 
+	-- Use blade mail
+	local blade_mail = items["item_blade_mail"]
+	if blade_mail ~= nil and blade_mail:GetManaCost() > bot.mp_current and blade_mail:IsFullyCastable()
+		and bot.ref:WasRecentlyDamagedByAnyHero(0.2)
+	then
+		print("Using blade mail..")
+		bot.ref:Action_UseAbility(blade_mail)
+		return
+	end
+
 	-- Use soul ring if hp > 60% and we need mana
 	local soul_ring = items["item_soul_ring"]
 	if soul_ring ~= nil and soul_ring:IsFullyCastable()
-		and bot.hp_percent > 0.6 and (bot.mp_max - bot.mp_current) > 150
+		and bot.hp_percent > 0.6 and (bot.mp_max - bot.mp_current) > 150 and bot.mp_percent < 0.7
 	then
 		bot.ref:Action_UseAbility(soul_ring)
 		return
 	end
 
-	-- Use mekansm if allies in range, need to improve later
-	local mekansm = items["item_mekansm"]
-	if mekansm ~= nil and mekansm:IsFullyCastable() and #allies > 0 then
-		bot.ref:Action_UseAbility(mekansm)
-		return
+	-- Use moonshard to gain buff if we have no slots
+	local moonshard = items["item_moon_shard"]
+	if moonshard ~= nil and moonshard:IsFullyCastable()
+		and GetItemsCount(bot) > 6
+	then
+		bot.ref:Action_UseAbility(moonshard)
+	end
+
+	-- Use manta style if fighting
+	local manta_style = items["item_manta"]
+	if bot.priority == "fight" and manta_style ~= nil and manta_style:GetManaCost() > bot.mp_current and manta_style:IsFullyCastable() then
+		bot.ref:Action_UseAbility(manta_style)
+	end
+
+	local power_treads = items["power_treads"]
+
+	if power_treads ~= nil then
+		local tread_stat = power_treads:GetPowerTreadsStat()
+		if bot.ref:HasModifier("modifier_flask_healing") or bot.ref:HasModifier("modifier_filler_heal") then
+			if tread_stat == ATTRIBUTE_STRENGTH then
+				bot.ref:Action_UseAbility(power_treads)
+			end
+			return
+		end
+		local primary_attribute = bot.ref:GetPrimaryAttribute()
+		if tread_stat ~= primary_attribute then
+			bot.ref:Action_UseAbility(power_treads)
+		end
 	end
 end
 
@@ -56,7 +89,6 @@ function UpKeep(bot)
 			if (ability:CanAbilityBeUpgraded() and ability:GetLevel() < ability:GetMaxLevel()) then
 				bot.ref:ActionImmediate_LevelAbility(bot.ability_order[1])
 				table.remove(bot.ability_order, 1)
-				-- print("Upgrading ability: " .. bot.ability_order[1])
 				return
 			end
 		end
@@ -67,6 +99,15 @@ function UpKeep(bot)
 	if bot.buy_order ~= nil then
 		buy_order = bot.buy_order
 	end
+
+	local items = GetItems(bot)
+
+	if (items["item_stout_shield"] and buy_order[1] == "item_stout_shield")
+		or (items["item_quelling_blade"] and buy_order[1] == "item_quelling_blade")
+	then
+		table.remove(buy_order, 1)
+	end
+
 	if buy_order and #buy_order ~= 0 then
 		local item = buy_order[1]
 		local cost = GetItemCost(item)
@@ -137,7 +178,7 @@ function UpKeep(bot)
 		end
 	end
 
-	-- Use Courier
+	-- Use courier
 	if GetNumCouriers() ~= 0 then
 		local courier = GetCourier(0)
 		local state = GetCourierState(courier)
@@ -151,23 +192,30 @@ function UpKeep(bot)
 		end
 	end
 
+	-- Generic sell order
+	local sell_order = {
+		"item_quelling_blade",
+		"item_stout_shield"
+	}
+
+	if bot.sell_order ~= nil then
+		sell_order = bot.buy_order
+	end
+
 	items = GetItems(bot)
-	-- Sell laning items
-	if DotaTime() > 750 and empty_slot == nil
-		and items["item_stout_shield"] or items["item_quelling_blade"]
+	-- Sell old items
+	if DotaTime() > 800 and empty_slot == nil and #sell_order > 0
 		and bot.ref:DistanceFromFountain() < SHOP_USE_DISTANCE
 		or GetUnitToLocationDistance(bot.ref, SIDE_SHOP_TOP) < SHOP_USE_DISTANCE
 		or GetUnitToLocationDistance(bot.ref, SIDE_SHOP_BOT) < SHOP_USE_DISTANCE
 		or GetUnitToLocationDistance(bot.ref, SECRET_SHOP_RADIANT) < SHOP_USE_DISTANCE
 		or GetUnitToLocationDistance(bot.ref, SECRET_SHOP_DIRE) < SHOP_USE_DISTANCE
 	then
-		if items["item_quelling_blade"] then
-			bot.ref:ActionImmediate_SellItem(items["item_quelling_blade"])
-			return
-		elseif items["item_stout_shield"] then
-			bot.ref:ActionImmediate_SellItem(items["item_stout_shield"])
+		if items[sell_order[1]] ~= nil then
+			bot.ref:ActionImmediate_SellItem(items[sell_order[1]])
 			return
 		end
+		table.remove(sell_order, 1)
 	end
 
 	UseItems(bot)
