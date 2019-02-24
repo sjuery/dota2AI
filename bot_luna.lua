@@ -216,16 +216,7 @@ end
 -- end
 
 local function Fight(bot, enemy)
-	local manta = bot.ref:FndItemSlot("item_manta")
-	print(manta)
-	if manta ~= nil and manta:IsFullyCastable() then
-		bot.ref:Action_UseAbility(manta)
-		return
-	end
-	if Eclipse(bot, enemy) then
-		return
-	end
-	if LucentBeam(bot, enemy) then
+	if Eclipse(bot, enemy) or LucentBeam(bot, enemy) then
 		return
 	end
 	bot.ref:Action_AttackUnit(enemy, true)

@@ -56,10 +56,16 @@ function UseItems(bot)
 		bot.ref:Action_UseAbility(manta_style)
 	end
 
-	local power_treads = items["power_treads"]
+	local power_treads = items["item_power_treads"]
+
+	local power_stat = {
+		ATTRIBUTE_STRENGTH,
+		ATTRIBUTE_AGILITY,
+		ATTRIBUTE_INTELLECT
+	}
 
 	if power_treads ~= nil then
-		local tread_stat = power_treads:GetPowerTreadsStat()
+		local tread_stat = power_stat[power_treads:GetPowerTreadsStat() + 1]
 		if bot.ref:HasModifier("modifier_flask_healing") or bot.ref:HasModifier("modifier_filler_heal") then
 			if tread_stat == ATTRIBUTE_STRENGTH then
 				bot.ref:Action_UseAbility(power_treads)
@@ -186,7 +192,7 @@ function UpKeep(bot)
 	}
 
 	if bot.sell_order ~= nil then
-		sell_order = bot.buy_order
+		sell_order = bot.sell_order
 	end
 
 	local items = GetItems(bot)

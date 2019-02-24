@@ -9,6 +9,7 @@ local buy_order = {
 	"item_flask",
 	"item_blight_stone",
 	"item_boots",
+	"item_blades_of_attack",
 	"item_chainmail",
 	-- Maelstrom
 	"item_mithril_hammer",
@@ -69,7 +70,9 @@ local function SpawnTrees(bot, enemy)
 		return false
 	end
 
-	if GetUnitHealthPercentage(enemy) < 0.33 then
+	local range = summon_trees:GetCastRange()
+
+	if GetUnitHealthPercentage(enemy) < 0.33 and GetUnitToUnitDistance(bot.ref, enemy) < range then
 		bot.ref:Action_UseAbilityOnLocation(summon_trees, enemy:GetLocation())
 		return true
 	end
@@ -80,7 +83,6 @@ end
 local function SummonTreants(bot)
 	local trees = bot.ref:GetNearbyTrees(1000)
 	local summon_treants = bot.ref:GetAbilityByName(SKILL_E)
-	local treant_talent = bot.ref:GetAbilityByName(TALENT_4) ~= nil
 
 	if not summon_treants:IsTrained() or #trees == 0 or bot.mp_current < summon_treants:GetManaCost()
 		or not summon_treants:IsFullyCastable() or bot.ref:IsChanneling() or bot.ref:IsUsingAbility() then
@@ -89,7 +91,7 @@ local function SummonTreants(bot)
 
 	radius = 75 + summon_treants:GetLevel() * 75
 	max_trees = 1 + summon_treants:GetLevel()
-	if treant_talent then
+	if bot.ref:GetAbilityByName(TALENT_4) ~= nil then
 		max_trees = max_trees + 4
 		radius = radius + 125
 	end
@@ -97,20 +99,24 @@ local function SummonTreants(bot)
 	best_count = 0
 	best_tree = nil
 
+	local range = summon_treants:GetCastRange()
+
 	for i = 1, #trees do
 		trees[i] = GetTreeLocation(trees[i])
 	end
 
 	for i = 1, #trees do
-		local count = 0
-		for j = 1, #trees do
-			if GetDistance(trees[i], trees[j]) < radius then
-				count = count + 1
+		if GetUnitToLocationDistance(bot.ref, trees[i]) < range then
+			local count = 0
+			for j = 1, #trees do
+				if GetDistance(trees[i], trees[j]) < radius then
+					count = count + 1
+				end
 			end
-		end
-		if count > best_count then
-			best_count = count
-			best_tree = trees[i]
+			if count > best_count then
+				best_count = count
+				best_tree = trees[i]
+			end
 		end
 	end
 
@@ -130,7 +136,7 @@ local function NaturesWrath(bot, enemy)
 		return false
 	end
 
-	if GetUnitHealthPercentage(enemy) < 0.70 then
+	if GetUnitHealthPercentage(enemy) < 0.7 then
 		bot.ref:Action_UseAbilityOnLocation(natures_wrath, enemy:GetLocation())
 		return true
 	end

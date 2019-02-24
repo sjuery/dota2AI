@@ -28,11 +28,11 @@ function ShopPriority(bot)
 	if IsItemPurchasedFromSideShop(item) and GetUnitToLocationDistance(bot.ref, side_shop_pos) < 3000
 		and IsLocationPassable(side_shop_pos)
 	then
-		return {45, side_shop_pos}
+		return {40, side_shop_pos}
 	elseif IsItemPurchasedFromSecretShop(item) and GetUnitToLocationDistance(bot.ref, secret_shop_pos) < 6000
 		and IsLocationPassable(secret_shop_pos)
 	then
-		return {45, secret_shop_pos}
+		return {40, secret_shop_pos}
 	end
 
 	return {0, nil}
