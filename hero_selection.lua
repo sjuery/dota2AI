@@ -1,6 +1,6 @@
 carry_pool = {
 	"npc_dota_hero_luna",
-	"npc_dota_hero_clinkz",
+	"npc_dota_hero_drow_ranger",
 	"npc_dota_hero_abyssal_underlord",
 	"npc_dota_hero_furion", -- Natures prophet
 	"npc_dota_hero_omniknight",
@@ -54,7 +54,6 @@ hero_pool = {
 	"npc_dota_hero_life_stealer",
 	"npc_dota_hero_lina",
 	"npc_dota_hero_lion",
-	-- "npc_dota_hero_luna",
 	"npc_dota_hero_lycan",
 	"npc_dota_hero_magnataur",
 	"npc_dota_hero_medusa",
