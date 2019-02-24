@@ -73,20 +73,72 @@ local bot = {
 	["ability_order"] = ability_order
 }
 
-function desireSilence(bot, silence)
-	if not silence:IsTrained() or bot.mp_current < silence:GetManaCost()
-		or not silence:IsFullyCastable() or bot.ref:IsChanneling() or bot.ref:IsUsingAbility() then
-		return false
+function SlowFreeze(bot)
+	local freeze = bot.ref:GetAbilityByName(SKILL_Q)
+	local range = freeze:GetCastRange()
+
+	local enemies = bot.ref:GetNearbyHeroes(range, true, BOT_MODE_NONE)
+
+	if not freeze:IsTrained() or bot.mp_current < freeze:GetManaCost()
+		or not freeze:IsFullyCastable() or bot.ref:IsChanneling() or bot.ref:IsUsingAbility() then
+		return
+	end
+	if bot.mp_current >= bot.ref:GetAbilityByName(SKILL_W):GetManaCost() then
+		if enemies ~= nil then
+			bot.ref:Action_UseAbilityOnEntity(freeze, enemies[1])
+		end
 	end
 end
 
 function WaveOfSilence(bot)
 	local silence = bot.ref:GetAbilityByName(SKILL_W)
 
-	desireSilence(bot, silence)
+	if not silence:IsTrained() or bot.mp_current < silence:GetManaCost()
+		or not silence:IsFullyCastable() or bot.ref:IsChanneling() or bot.ref:IsUsingAbility() then
+		return
+	end
+
+	local range = silence:GetCastRange()
+	local enemies = bot.ref:GetNearbyHeroes(range+100, true, BOT_MODE_NONE)
+	if enemies ~= nil then
+		for i = 1, #enemies do
+			if enemies[i]:IsChanneling() then
+				bot.ref:Action_UseAbilityOnLocation(silence, enemies[i]:GetLocation())
+				return
+			end
+		end
+	end
+
+	if bot.priority == "retreat" then
+		if enemies ~= nil then
+			for i = 1, #enemies do
+				bot.ref:Action_UseAbilityOnLocation(silence, enemies[i]:GetLocation())
+				return
+			end
+		end
+	end
+end
+
+function RangePush(bot)
+	local push = bot.ref:GetAbilityByName(SKILL_E)
+	if not push:IsTrained() or bot.mp_current < push:GetManaCost()
+		or not push:IsFullyCastable() or bot.ref:IsChanneling() or bot.ref:IsUsingAbility() then
+		return
+	end
+
+	bot.ref:Action_UseAbility(push)
 end
 
 function Think()
 	UpdateBot(bot)
 	Thonk(bot, priority)
+	WaveOfSilence(bot)
+
+	if bot.priority == "fight" then
+		SlowFreeze(bot)
+	end
+
+	if bot.priority == "push" then
+		RangePush(bot)
+	end
 end
