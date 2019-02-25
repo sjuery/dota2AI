@@ -77,38 +77,34 @@ local bot = {
 
 table.insert(g, bot)
 
-function SlowFreeze(bot)
+local function SlowFreeze(bot, enemy)
 	local freeze = bot.ref:GetAbilityByName(SKILL_Q)
 	local range = freeze:GetCastRange()
 
-	local enemies = bot.ref:GetNearbyHeroes(range, true, BOT_MODE_NONE)
-
 	if not freeze:IsTrained() or bot.mp_current < freeze:GetManaCost()
 		or not freeze:IsFullyCastable() or bot.ref:IsChanneling() or bot.ref:IsUsingAbility() then
-		return
+		return false
 	end
-	if bot.mp_current >= bot.ref:GetAbilityByName(SKILL_W):GetManaCost() then
-		if enemies ~= nil then
-			bot.ref:Action_UseAbilityOnEntity(freeze, enemies[1])
-		end
-	end
+
+	bot.ref:Action_UseAbilityOnEntity(freeze, enemy)
+	return true
 end
 
-function WaveOfSilence(bot)
+local function WaveOfSilence(bot)
 	local silence = bot.ref:GetAbilityByName(SKILL_W)
 
 	if not silence:IsTrained() or bot.mp_current < silence:GetManaCost()
 		or not silence:IsFullyCastable() or bot.ref:IsChanneling() or bot.ref:IsUsingAbility() then
-		return
+		return false
 	end
 
 	local range = silence:GetCastRange()
-	local enemies = bot.ref:GetNearbyHeroes(range+100, true, BOT_MODE_NONE)
+	local enemies = bot.ref:GetNearbyHeroes(range + 100, true, BOT_MODE_NONE)
 	if enemies ~= nil then
 		for i = 1, #enemies do
 			if enemies[i]:IsChanneling() then
 				bot.ref:Action_UseAbilityOnLocation(silence, enemies[i]:GetLocation())
-				return
+				return true
 			end
 		end
 	end
@@ -117,32 +113,44 @@ function WaveOfSilence(bot)
 		if enemies ~= nil then
 			for i = 1, #enemies do
 				bot.ref:Action_UseAbilityOnLocation(silence, enemies[i]:GetLocation())
-				return
+				return true
 			end
 		end
 	end
+
+	return false
 end
 
-function RangePush(bot)
+local function RangePush(bot)
 	local push = bot.ref:GetAbilityByName(SKILL_E)
 	if not push:IsTrained() or bot.mp_current < push:GetManaCost()
-		or not push:IsFullyCastable() or bot.ref:IsChanneling() or bot.ref:IsUsingAbility() then
-		return
+		or not push:IsFullyCastable() or bot.ref:IsChanneling() or bot.ref:IsUsingAbility()
+	then
+		return false
 	end
 
 	bot.ref:Action_UseAbility(push)
+	return true
 end
+
+local function CustomFight(bot, enemy)
+	if SlowFreeze(bot) then
+		return
+	end
+	bot.ref:Action_AttackUnit(value, true)
+end
+
+priority["fight"][2] = CustomFight
 
 function Think()
 	UpdateBot(bot)
 	Thonk(bot, priority)
-	WaveOfSilence(bot)
 
-	if bot.priority == "fight" then
-		SlowFreeze(bot)
+	if WaveOfSilence(bot) then
+		return
 	end
 
-	if bot.priority == "push" then
-		RangePush(bot)
+	if (bot.priority == "push" and RangePush(bot)) then
+		return
 	end
 end

@@ -89,26 +89,29 @@ function GetStartingLane(lane)
 end
 
 function GetLaneTower(bot)
-	if GetTower(GetTeam(), ((bot.lane - 1) * 3) + 0) ~= nil then
-		return GetTower(GetTeam(), ((bot.lane - 1) * 3) + 0)
-	elseif GetTower(GetTeam(), ((bot.lane - 1) * 3) + 1) ~= nil then
-		return GetTower(GetTeam(), ((bot.lane - 1) * 3) + 1)
-	elseif GetTower(GetTeam(), ((bot.lane - 1) * 3) + 2) ~= nil then
-		return GetTower(GetTeam(), ((bot.lane - 1) * 3) + 2)
+	local team = GetTeam()
+
+	if GetTower(team, ((bot.lane - 1) * 3) + 0) ~= nil then
+		return GetTower(team, ((bot.lane - 1) * 3) + 0)
+	elseif GetTower(team, ((bot.lane - 1) * 3) + 1) ~= nil then
+		return GetTower(team, ((bot.lane - 1) * 3) + 1)
+	elseif GetTower(team, ((bot.lane - 1) * 3) + 2) ~= nil then
+		return GetTower(team, ((bot.lane - 1) * 3) + 2)
 	end
 	return nil
 end
 
 function RetreatLocation(bot)
-	if GetTower(GetTeam(), ((bot.lane - 1) * 3) + 0) ~= nil and bot.ref:DistanceFromFountain() > 11500 then
-		return GetTower(GetTeam(), ((bot.lane - 1) * 3) + 0):GetLocation()
-	elseif GetTower(GetTeam(), ((bot.lane - 1) * 3) + 1) ~= nil and bot.ref:DistanceFromFountain() > 7000 then
-		return GetTower(GetTeam(), ((bot.lane - 1) * 3) + 1):GetLocation()
-	elseif GetTower(GetTeam(), ((bot.lane - 1) * 3) + 2) ~= nil  and bot.ref:DistanceFromFountain() > 3000 then
-		return GetTower(GetTeam(), ((bot.lane - 1) * 3) + 2):GetLocation()
+	local team = GetTeam()
+	if GetTower(team, ((bot.lane - 1) * 3) + 0) ~= nil and bot.ref:DistanceFromFountain() > 11500 then
+		return GetTower(team, ((bot.lane - 1) * 3) + 0):GetLocation()
+	elseif GetTower(team, ((bot.lane - 1) * 3) + 1) ~= nil and bot.ref:DistanceFromFountain() > 7000 then
+		return GetTower(team, ((bot.lane - 1) * 3) + 1):GetLocation()
+	elseif GetTower(team, ((bot.lane - 1) * 3) + 2) ~= nil  and bot.ref:DistanceFromFountain() > 3000 then
+		return GetTower(team, ((bot.lane - 1) * 3) + 2):GetLocation()
 	end
 
-	if GetTeam() == TEAM_RADIANT then
+	if team == TEAM_RADIANT then
 		return FOUNTAIN_RADIANT
 	end
 	return FOUNTAIN_DIRE
@@ -119,6 +122,32 @@ function GetFountain()
 		return FOUNTAIN_RADIANT
 	end
 	return FOUNTAIN_DIRE
+end
+
+function GetUnitHealthPercentage(unit)
+	return unit:GetHealth() / unit:GetMaxHealth()
+end
+
+function GetNearbyVisibleTowers(bot, radius, enemy)
+	local visible_towers = {}
+	local towers = bot.ref:GetNearbyTowers(1600, enemy)
+	for i = 1, #towers do
+		if towers[i]:GetHealth() > 0 then
+			table.insert(visible_towers, towers[i])
+		end
+	end
+	return visible_towers
+end
+
+function GetNearbyVisibleBarracks(bot, radius, enemy)
+	local visible_barracks = {}
+	local barracks = bot.ref:GetNearbyBarracks(radius, enemy)
+	for i = 1, #barracks do
+		if barracks[i]:GetHealth() > 0 then
+			table.insert(visible_barracks, barracks[i])
+		end
+	end
+	return visible_barracks
 end
 
 function ShouldTrade(bot, target)
@@ -135,7 +164,7 @@ end
 function TotalDamage(hero)
 	local total_damage = 0
 	local enemy_creeps = hero:GetNearbyCreeps(500, true)
-	local enemy_towers = hero:GetNearbyTowers(950, true)
+	local enemy_towers = GetNearbyVisibleTowers(hero, 950, true)
 	local enemy_heroes = hero:GetNearbyHeroes(1600, true, BOT_MODE_NONE)
 
 	if enemy_creeps ~= nil then

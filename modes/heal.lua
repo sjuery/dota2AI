@@ -1,8 +1,8 @@
 require(GetScriptDirectory() .. "../utility")
 
 function HealPriority(bot)
-	if bot.hp_percent < 0.76
-		and (bot.ref:HasModifier("modifier_fountain_aura_buff") or bot.ref:HasModifier("modifier_fountain_aura"))
+	if bot.hp_percent < 0.72
+		and (bot.ref:HasModifier("modifier_fountain_aura") or bot.ref:HasModifier("modifier_fountain_aura_buff"))
 	then
 		return {80, {"fountain", nil}}
 	end
@@ -11,7 +11,7 @@ function HealPriority(bot)
 
 	local salve = items["item_flask"]
 	if salve ~= nil 
-		and not bot.ref:HasModifier("modifier_flask_healing") 
+		and not bot.ref:HasModifier("modifier_flask_healing")
 		and not bot.ref:WasRecentlyDamagedByAnyHero(3.0) and not bot.ref:WasRecentlyDamagedByTower(3.0)
 		and (bot.hp_max - bot.hp_current > 400 or bot.hp_percent < 0.33)
 	then
@@ -33,7 +33,7 @@ function HealPriority(bot)
 	then
 		local trees = bot.ref:GetNearbyTrees(1000)
 		if #trees > 0 then
-			local towers = bot.ref:GetNearbyTowers(1600, true)
+			local towers = GetNearbyVisibleTowers(bot, 1600, true)
 
 			local tree = nil
 			-- Search for safe trees (Not under enemy towers)
@@ -103,8 +103,9 @@ function Heal(bot, params)
 
 	if heal_item == "shrine" then
 		bot.ref:Action_MoveToLocation(heal_target:GetLocation())
-		if GetUnitToUnitDistance(bot.ref, heal_target) < 400 and not bot.ref:HasModifier("modifier_flask_healing") then
-			print("Using to shrine to restore..")
+		if GetUnitToUnitDistance(bot.ref, heal_target) < 400
+			and not bot.ref:HasModifier("modifier_flask_healing") and not bot.ref:HasModifier("modifier_filler_heal")
+		then
 			bot.ref:Action_UseShrine(heal_target)
 		end
 		return

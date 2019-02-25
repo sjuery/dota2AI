@@ -17,6 +17,9 @@ local buy_order = {
 	"item_chainmail",
 	"item_robe",
 	"item_broadsword",
+	-- Vanguard
+	"item_vitality_booster",
+	"item_ring_of_regen",
 	-- Scepter
 	"item_ogre_axe",
 	"item_point_booster",
@@ -55,7 +58,7 @@ local bot = {
 
 table.insert(g, bot)
 
-function priorityQ(bot)
+local function priorityQ(bot)
 	local abilityQ = bot.ref:GetAbilityByName(SKILL_Q)
 	local aoe_heroes = bot.ref:FindAoELocation(true, true, bot.ref:GetLocation(), abilityQ:GetCastRange(), 400, abilityQ:GetSpecialValueFloat("delay_plus_castpoint_tooltip"), 0)
 	local aoe_minions = bot.ref:FindAoELocation(true, false, bot.ref:GetLocation(), abilityQ:GetCastRange(), 400, abilityQ:GetSpecialValueFloat("delay_plus_castpoint_tooltip"), 0)
@@ -73,7 +76,7 @@ function priorityQ(bot)
 	end
 end
 
-function priorityW(bot)
+local function priorityW(bot)
 	local abilityW = bot.ref:GetAbilityByName(SKILL_W)
 	local aoe_heroes = bot.ref:FindAoELocation(true, true, bot.ref:GetLocation(), abilityW:GetCastRange(), 375, abilityW:GetSpecialValueFloat("delay_plus_castpoint_tooltip"), 0)
 	local aoe_minions = bot.ref:FindAoELocation(true, false, bot.ref:GetLocation(), abilityW:GetCastRange(), 375, abilityW:GetSpecialValueFloat("delay_plus_castpoint_tooltip"), 0)
@@ -91,7 +94,7 @@ function priorityW(bot)
 	end
 end
 
-function customFarm(bot, creep)
+local function customFarm(bot, creep)
 	front = GetLaneFrontAmount(GetTeam(), bot.lane, false)
 	enemyfront = GetLaneFrontAmount(GetEnemyTeam(), bot.lane, false)
 	front = Min(front, enemyfront)

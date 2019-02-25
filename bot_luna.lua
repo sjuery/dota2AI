@@ -219,10 +219,7 @@ end
 -- end
 
 local function Fight(bot, enemy)
-	if Eclipse(bot, enemy) then
-		return
-	end
-	if LucentBeam(bot, enemy) then
+	if Eclipse(bot, enemy) or LucentBeam(bot, enemy) then
 		return
 	end
 	bot.ref:Action_AttackUnit(enemy, true)
