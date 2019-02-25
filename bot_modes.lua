@@ -40,8 +40,9 @@ function Thonk(bot, priority)
 		end
 	end
 	if priority_name ~= bot.priority then
+		bot.priority = priority_name
+		bot.priority_value = priority_best
 		print(bot.name .. ": " .. priority_name)
-		print(bot.name .. ": " .. priority_best)
 	end
 	priority_mode(bot, priority_value)
 	bot.priority = priority_name
