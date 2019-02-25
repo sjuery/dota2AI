@@ -1,7 +1,7 @@
 carry_pool = {
 	"npc_dota_hero_luna",
 	"npc_dota_hero_drow_ranger",
-	"npc_dota_hero_axe",
+	"npc_dota_hero_abyssal_underlord",
 	"npc_dota_hero_furion", -- Natures prophet
 	"npc_dota_hero_omniknight",
 }
@@ -12,7 +12,7 @@ hero_pool = {
 	"npc_dota_hero_antimage",
 	"npc_dota_hero_ancient_apparition",
 	"npc_dota_hero_arc_warden",
-	-- "npc_dota_hero_axe",
+	"npc_dota_hero_axe",
 	"npc_dota_hero_bane",
 	"npc_dota_hero_batrider",
 	"npc_dota_hero_beastmaster",
@@ -140,7 +140,7 @@ function BansHero()
 	if not IsPlayerInHeroSelectionControl(GetCMCaptain()) then
 		return
 	end
-	heroToBan = hero_pool[math.random(108)]
+	heroToBan = hero_pool[math.random(#hero_pool)]
 	if IsCMBannedHero(heroToBan) == 1 or IsCMPickedHero(TEAM_RADIANT, heroToBan) == 1 or IsCMPickedHero(TEAM_DIRE, heroToBan) == 1 then
 		BansHero()
 	else

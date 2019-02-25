@@ -3,6 +3,8 @@ require(GetScriptDirectory() .. "/utility")
 require(GetScriptDirectory() .. "/upkeep")
 -- require(GetScriptDirectory() .. "/luna_desires")
 
+local g = require(GetScriptDirectory() .. "/global")
+
 local priority = DeepCopy(generic_priority)
 
 local buy_order = {
@@ -77,6 +79,7 @@ local bot = {
 	["ability_order"] = ability_order
 }
 
+table.insert(g, bot)
 
 -- function focus_target(enemy_heroes)
 -- 	local lowest_health = 100000

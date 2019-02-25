@@ -1,6 +1,8 @@
 require(GetScriptDirectory() .. "/bot_modes")
 require(GetScriptDirectory() .. "/utility")
 
+local g = require(GetScriptDirectory() .. "/global")
+
 local priority = DeepCopy(generic_priority)
 
 local buy_order = {
@@ -77,6 +79,8 @@ local ability_order = {
 	SKILL_Q, SKILL_R, SKILL_W, SKILL_W, TALENT_3,
 	SKILL_W, SKILL_R, TALENT_5, TALENT_7
 }
+
+table.insert(g, bot)
 
 local bot = {
 	["ref"] = GetBot(),
