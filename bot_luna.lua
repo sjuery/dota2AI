@@ -78,18 +78,18 @@ local bot = {
 }
 
 
--- function focus_target(enemy_heroes)
--- 	local lowest_health = 100000
--- 	local lowest_enemy = nil
+function focus_target(enemy_heroes)
+	local lowest_health = 100000
+	local lowest_enemy = nil
 
--- 	for i = 1, #enemy_heroes do
--- 		if lowest_health > enemy_heroes[i]:GetHealth() then
--- 			lowest_health = enemy_heroes[i]:GetHealth()
--- 			lowest_enemy = enemy_heroes[i]
--- 		end
--- 	end
--- 	return lowest_enemy
--- end
+	for i = 1, #enemy_heroes do
+		if lowest_health > enemy_heroes[i]:GetHealth() then
+			lowest_health = enemy_heroes[i]:GetHealth()
+			lowest_enemy = enemy_heroes[i]
+		end
+	end
+	return lowest_enemy
+end
 
 function LucentBeam(bot, enemy)
 
@@ -100,24 +100,14 @@ function LucentBeam(bot, enemy)
 
 	if cast_beam == nil then
 		return false
-	elseif bot.mp_current < (cast_beam:GetManaCost() * 2)
+	elseif bot.mp_current < cast_beam:GetManaCost()
 		or not cast_beam:IsFullyCastable()
 		or bot.ref:IsChanneling()
 		or bot.ref:IsUsingAbility()
 		then
 		return false
-	else
-		cast_range = (cast_beam:GetCastRange() * 0.75)
-		-- enemy_heroes = bot.ref:GetNearbyHeroes(cast_range, true, BOT_MODE_NONE)
-	end
-
-	-- if enemy_he== nil then
-		-- return false
-	-- end
-
-	-- lowest_enemy = focus_target(enemy)
-	if enemy ~= nil
-		and enemy:GetHealth() <=  (enemy:GetMaxHealth() * 0.75) then
+	elseif enemy ~= nil
+		and enemy:GetHealth() <= (enemy:GetMaxHealth() * 0.75) then
 		print("Casting LucentBeam")
 		bot.ref:Action_UseAbilityOnEntity(cast_beam, enemy)
 		return true
@@ -147,10 +137,6 @@ function Eclipse(bot, enemy)
 	if enemy ~= nil then
 		print("Casting Eclipse")
 		bot.ref:Action_UseAbility(cast_eclipse)
-		while enemy:IsAlive() do 
-			Action_MoveToUnit(enemy)
-		-- Use manta if UseItems is called..
-		end
 		return true
 	end
 	return false
@@ -216,6 +202,9 @@ end
 -- end
 
 local function Fight(bot, enemy)
+	if GetUnitToUnitDistance(bot.ref, enemy) > bot.ref:GetAttackRange() then
+		bof.ref:Action_MoveToUnit(enemy)
+	end
 	if Eclipse(bot, enemy) or LucentBeam(bot, enemy) then
 		return
 	end
