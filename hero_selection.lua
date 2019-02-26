@@ -1,3 +1,11 @@
+hero_names = {
+	"Wolverine",
+	"SJuery",
+	"Mr.Robot",
+	"Steven from Sweden",
+	"Theo St.George Walton"
+}
+
 carry_pool = {
 	"npc_dota_hero_luna",
 	"npc_dota_hero_drow_ranger",
@@ -129,6 +137,10 @@ function Think()
 	elseif GetHeroPickState() == HEROPICK_STATE_CM_PICK then
 		SelectsHero()
 	end
+end
+
+function GetBotNames()
+	return hero_names
 end
 
 function PickCaptain()
