@@ -37,7 +37,6 @@ function RunePriority(bot)
 	elseif closest_rune_dist < 800 then
 		return {65, closest_rune}
 	end
-
 	return {55, closest_rune}
 end
 
