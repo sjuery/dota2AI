@@ -31,7 +31,7 @@ function PushPriority(bot)
 		return {50, base}
 	end
 
-	return {10, enemy_towers[1]}
+	return {0, nil}
 end
 
 function Push(bot, enemy_tower)
