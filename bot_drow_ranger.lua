@@ -105,7 +105,7 @@ local function WaveOfSilence(bot)
 		end
 	end
 
-	if bot.priority == "retreat" then
+	if bot.priority_name == "retreat" then
 		if enemies ~= nil then
 			for i = 1, #enemies do
 				bot.ref:Action_UseAbilityOnLocation(silence, enemies[i]:GetLocation())
@@ -146,7 +146,7 @@ function Think()
 		return
 	end
 
-	if (bot.priority == "push" and RangePush(bot)) then
+	if (bot.priority_name == "push" and RangePush(bot)) then
 		return
 	end
 end

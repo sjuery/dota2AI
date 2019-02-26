@@ -31,14 +31,16 @@ function PushPriority(bot)
 		return {50, base}
 	end
 
-	return {2, nil}
+	return {0, nil}
 end
 
 function Push(bot, enemy_tower)
-	front = GetLaneFrontAmount(GetTeam(), bot.lane, false)
-	enemyfront = GetLaneFrontAmount(GetEnemyTeam(), bot.lane, false)
-	front = Min(front, enemyfront)
-	dest = GetLocationAlongLane(bot.lane, Min(1.0, front))
-	bot.ref:Action_MoveToLocation(dest)
+	--if DeAggroTower() then
+	--	return
+	--end
+
+	if GetUnitToUnitDistance(bot.ref, enemy_tower) > bot.ref:GetBoundingRadius() + bot.ref:GetAttackRange() then
+		bot.ref:Action_MoveToUnit(enemy_tower)
+	end
 	bot.ref:Action_AttackUnit(enemy_tower, true)
 end

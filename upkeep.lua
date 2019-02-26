@@ -16,7 +16,7 @@ function UseItems(bot)
 	-- Use phase boots for retreating, maybe one day for attacking.
 	local phase_boots = items["item_phase_boots"]
 	if phase_boots ~= nil and phase_boots:IsFullyCastable()
-		and bot.priority == "retreat"
+		and (bot.priority_name == "retreat" or bot.priority_name == "fight") and bot.priority > 50
 	then
 		print("Using phase boots..")
 		bot.ref:Action_UseAbility(phase_boots)
@@ -52,24 +52,23 @@ function UseItems(bot)
 
 	-- Use manta style if fighting
 	local manta_style = items["item_manta"]
-	if bot.priority == "fight" and manta_style ~= nil and manta_style:GetManaCost() <= bot.mp_current and manta_style:IsFullyCastable() then
+	if manta_style ~= nil and bot.priority_name == "fight" and manta_style:GetManaCost() <= bot.mp_current and manta_style:IsFullyCastable() then
 		bot.ref:Action_UseAbility(manta_style)
 	end
 
 	local power_treads = items["item_power_treads"]
 
-	local power_stat = {
-		ATTRIBUTE_STRENGTH,
-		ATTRIBUTE_AGILITY,
-		ATTRIBUTE_INTELLECT
-	}
-
 	if power_treads ~= nil then
-		local tread_stat = power_stat[power_treads:GetPowerTreadsStat() + 1]
-		if bot.ref:HasModifier("modifier_flask_healing") or bot.ref:HasModifier("modifier_filler_heal") then
-			if tread_stat == ATTRIBUTE_STRENGTH then
-				bot.ref:Action_UseAbility(power_treads)
-			end
+		local power_stat = {
+			[0] = ATTRIBUTE_STRENGTH,
+			[1] = ATTRIBUTE_INTELLECT,
+			[2] = ATTRIBUTE_AGILITY
+		}
+		local tread_stat = power_stat[power_treads:GetPowerTreadsStat()]
+		if bot.ref:HasModifier("modifier_flask_healing") or bot.ref:HasModifier("modifier_filler_heal")
+			and tread_stat == ATTRIBUTE_STRENGTH
+		then
+			bot.ref:Action_UseAbility(power_treads)
 			return
 		end
 		local primary_attribute = bot.ref:GetPrimaryAttribute()

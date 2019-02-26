@@ -43,9 +43,11 @@ end
 
 function Rune(bot, rune)
 	if rune ~= nil then
-		--bot.ref:Action_MoveDirectly(GetRuneSpawnLocation(rune))
+		local pos = GetRuneSpawnLocation(rune)
+		if GetUnitToLocationDistance(bot.ref, pos) > 100 then
+			bot.ref:Action_MoveToLocation(pos)
+		end
 		bot.ref:Action_PickUpRune(rune)
-		--print("Trying to get bounty rune..")
 		return
 	end
 	if GetTeam() == TEAM_RADIANT then

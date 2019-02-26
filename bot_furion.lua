@@ -63,10 +63,9 @@ local bot = {
 
 local function SpawnTrees(bot, enemy)
 	local summon_trees = bot.ref:GetAbilityByName(SKILL_Q)
-	local summon_treants = bot.ref:GetAbilityByName(SKILL_E)
 
-	if not summon_trees:IsTrained() or not summon_treants:IsTrained() or bot.mp_current < summon_trees:GetManaCost()
-		or not summon_trees:IsFullyCastable() or not summon_treants:IsFullyCastable() or bot.ref:IsChanneling() or bot.ref:IsUsingAbility() then
+	if not summon_trees:IsTrained() or bot.mp_current < summon_trees:GetManaCost()
+		or not summon_trees:IsFullyCastable() or bot.ref:IsChanneling() or bot.ref:IsUsingAbility() then
 		return false
 	end
 
@@ -148,7 +147,7 @@ local function CustomFight(bot, enemy)
 	if SpawnTrees(bot, enemy) or SummonTreants(bot) or NaturesWrath(bot, enemy) then
 		return
 	end
-	bot.ref:Action_AttackUnit(value, true)
+	AttackUnit(bot, enemy)
 end
 
 priority["fight"][2] = CustomFight

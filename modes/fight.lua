@@ -16,8 +16,10 @@ function FightPriority(bot)
 			local pos = enemy_heroes[i]:GetLocation()
 			if IsLocationVisible(pos) or IsLocationPassable(pos) then
 				for i = 1, #towers do
-					if GetDistance(pos, towers[i]:GetLocation()) > 950 - bot.ref:GetAttackRange() 
-						or enemy_heroes[i]:GetHealth() < 0.15
+					if GetDistance(pos, towers[i]:GetLocation()) > 900
+						or (enemy_heroes[i]:GetHealth() < 0.15
+							and bot.ref:GetEstimatedDamageToTarget(true, bot.ref, 4, DAMAGE_TYPE_PHYSICAL) > bot.hp_current)
+						or GetUnitToLocationDistance(bot.ref, pos) < bot.ref:GetAttackRange()
 					then
 						table.insert(targets, enemy_heroes[i])
 					end
@@ -61,9 +63,40 @@ function FightPriority(bot)
 	return {0, nil}
 end
 
+-- local enemy_modifiers = {
+-- 	["modifier_flask_healing"] = 15,
+-- 	["modifier_clarity_potion"] = 15,
+-- 	["modifier_stunned"] = 15,
+-- 	["modifier_item_blade_mail_reflect"] = -40,
+-- 	["modifier_bashed"] = 5,
+-- 	["modifier_rooted"] = 5
+--  ["modifier_silence"] = 10
+--	["modifier_tower_armor_bonus"] = -10
+-- }
+
+-- local allie_modifers = {
+-- 	["modifier_flask_healing"] = -10,
+-- 	["modifier_clarity_potion"] = -10,
+-- 	["luna_lunar_blessing"] = 5,
+-- 	["modifier_luna_lunar_blessing_aura"] = 5,
+-- 	["modifier_omniknight_repel"] = 5,
+-- 	["modifier_luna_eclipse"] = 15,
+-- 	["modifier_omninight_guardian_angel"] = 15,
+-- 	["modifier_item_blade_mail_reflect"] = 10,
+-- 	["modifier_rune_regen"] = 5,
+-- 	["modifier_rune_doubledamage"] = 15,
+-- 	["modifier_rune_arcane"] = 5,
+--  ["modifier_silence"] = -10,
+--  ["modifier_rooted"] = 5,
+-- }
+
+-- function FightPriority(bot)
+-- 	local enemy_heroes = bot.ref:GetNearbyHeroes(1200, true, BOT_MODE_NONE)
+-- 	local allied_heroes = bot.ref:GetNearbyHeroes(1200, false, BOT_MODE_NONE)
+
+-- 	bot.target = target
+-- end
+
 function Fight(bot, enemy)
-	if GetUnitToUnitDistance(bot.ref, enemy) > bot.ref:GetAttackRange() then
-		bot.ref:Action_MoveToLocation(enemy:GetLocation())
-	end
-	bot.ref:Action_AttackMove(enemy, true)
+	AttackUnit(bot, enemy)
 end
