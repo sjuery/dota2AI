@@ -60,7 +60,7 @@ function FightPriority(bot)
 		return {55, target}
 	end
 
-	return {0, nil}
+	return {0, target}
 end
 
 -- local enemy_modifiers = {

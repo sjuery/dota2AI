@@ -1,6 +1,8 @@
 require(GetScriptDirectory() .. "/bot_modes")
 require(GetScriptDirectory() .. "/utility")
 
+local g = require(GetScriptDirectory() .. "/global")
+
 local priority = DeepCopy(generic_priority)
 
 local buy_order = {
@@ -74,6 +76,21 @@ local bot = {
 	["buy_order"] = buy_order,
 	["ability_order"] = ability_order
 }
+
+table.insert(g, bot)
+
+function focus_target(enemy_heroes)
+	local lowest_health = 100000
+	local lowest_enemy = nil
+
+	for i = 1, #enemy_heroes do
+		if lowest_health > enemy_heroes[i]:GetHealth() then
+			lowest_health = enemy_heroes[i]:GetHealth()
+			lowest_enemy = enemy_heroes[i]
+		end
+	end
+	return lowest_enemy
+end
 
 function LucentBeam(bot, enemy)
 

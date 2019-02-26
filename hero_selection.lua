@@ -139,7 +139,7 @@ function BansHero()
 	if not IsPlayerInHeroSelectionControl(GetCMCaptain()) then
 		return
 	end
-	heroToBan = hero_pool[math.random(108)]
+	heroToBan = hero_pool[math.random(#hero_pool)]
 	if IsCMBannedHero(heroToBan) == 1 or IsCMPickedHero(TEAM_RADIANT, heroToBan) == 1 or IsCMPickedHero(TEAM_DIRE, heroToBan) == 1 then
 		BansHero()
 	else

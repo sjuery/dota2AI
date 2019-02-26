@@ -35,10 +35,6 @@ function PushPriority(bot)
 end
 
 function Push(bot, enemy_tower)
-	--if DeAggroTower() then
-	--	return
-	--end
-
 	if GetUnitToUnitDistance(bot.ref, enemy_tower) > bot.ref:GetBoundingRadius() + bot.ref:GetAttackRange() then
 		bot.ref:Action_MoveToUnit(enemy_tower)
 	end

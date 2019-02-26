@@ -29,6 +29,10 @@ function TeleportPriority(bot)
 	else
 		target = target:GetLocation() + RandomVector(150)
 	end
+	local fountain = GetFountain()
+
+	--allied_towers = GetNearbyVisibleTowers(bot, 400, false)
+	-- if #allied_towers > 0 and bot.hp_percent < 0.33 then
 
 	if (bot.ref:HasModifier("modifier_fountain_aura") or bot.ref:HasModifier("modifier_fountain_aura_buff")) and bot.hp_percent > 0.7 then
 		return {100, {tp_scroll, target}}
