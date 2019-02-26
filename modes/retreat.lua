@@ -35,14 +35,14 @@ function RetreatPriority(bot)
 
 	-- Tower not safe
 	if bot.ref:WasRecentlyDamagedByTower(1.0) and #enemy_towers > 0
-		and GetUnitToUnitDistance(bot.ref, enemy_towers[1]) < 900
+		and GetUnitToUnitDistance(bot.ref, enemy_towers[1]) < 950
 	then
 		return {70, DotaTime() + 5}
 	end
 
 	if #enemy_towers > 0
 		and (#meatshield_creeps <= 2)
-		and GetUnitToUnitDistance(enemy_towers[1], bot.ref) < 920
+		and GetUnitToUnitDistance(enemy_towers[1], bot.ref) < 950
 	then
 		return {60, DotaTime() + 5}
 	end
@@ -80,5 +80,9 @@ end
 
 function Retreat(bot, retreat_time)
 	bot.retreat = retreat_time
+
+	--if DeAggroTower() then
+	--	return
+	--end
 	bot.ref:Action_MoveToLocation(RetreatLocation(bot))
 end

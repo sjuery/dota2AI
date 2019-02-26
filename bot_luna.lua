@@ -1,7 +1,5 @@
 require(GetScriptDirectory() .. "/bot_modes")
 require(GetScriptDirectory() .. "/utility")
-require(GetScriptDirectory() .. "/upkeep")
--- require(GetScriptDirectory() .. "/luna_desires")
 
 local g = require(GetScriptDirectory() .. "/global")
 
@@ -97,49 +95,42 @@ end
 function LucentBeam(bot, enemy)
 
 	local cast_range = nil
-	local lowest_enemy = nil
 
-	local cast_beam = bot.ref:GetAbilityByName(SKILL_Q)
+	local lucent_beam = bot.ref:GetAbilityByName(SKILL_Q)
 
-	if cast_beam == nil then
-		return false
-	elseif bot.mp_current < cast_beam:GetManaCost()
-		or not cast_beam:IsFullyCastable()
+	if not lucent_beam:IsTrained() or bot.mp_current < lucent_beam:GetManaCost()
+		or not lucent_beam:IsFullyCastable()
 		or bot.ref:IsChanneling()
 		or bot.ref:IsUsingAbility()
-		then
+	then
 		return false
-	elseif enemy ~= nil
-		and enemy:GetHealth() <= (enemy:GetMaxHealth() * 0.75) then
-		print("Casting LucentBeam")
-		bot.ref:Action_UseAbilityOnEntity(cast_beam, enemy)
+	else
+		cast_range = lucent_beam:GetCastRange() * 0.75
+	end
+
+	if enemy ~= nil
+		and enemy:GetHealth() <= enemy:GetMaxHealth() * 0.75 then
+		bot.ref:Action_UseAbilityOnEntity(lucent_beam, enemy)
 		return true
 	end
 	return false
 end
 
 function Eclipse(bot, enemy)
-	local cast_eclipse = bot.ref:GetAbilityByName(SKILL_R)
+	local eclipse = bot.ref:GetAbilityByName(SKILL_R)
 
-	if cast_eclipse == nil then
-		return false
-	elseif bot.mp_current < cast_eclipse:GetManaCost()
-		or not cast_eclipse:IsFullyCastable()
+	if not eclipse:IsTrained() or bot.mp_current < eclipse:GetManaCost()
+		or not eclipse:IsFullyCastable()
 		or bot.ref:IsChanneling()
 		or bot.ref:IsUsingAbility()
 		then
 		return false
 	else
-		local cast_range = cast_eclipse:GetCastRange()
-		-- local enemy_heroes = bot.ref:GetNearbyHeroes(cast_range, true, BOT_MODE_NONE)
+		local cast_range = eclipse:GetCastRange()
 	end
 
-	-- if enemy_heroes == nil then
-		-- return false
-	-- end
 	if enemy ~= nil then
-		print("Casting Eclipse")
-		bot.ref:Action_UseAbility(cast_eclipse)
+		bot.ref:Action_UseAbility(eclipse)
 		return true
 	end
 	return false
@@ -204,17 +195,14 @@ end
 -- 	return {desire, target}
 -- end
 
-local function Fight(bot, enemy)
-	if GetUnitToUnitDistance(bot.ref, enemy) > bot.ref:GetAttackRange() then
-		bof.ref:Action_MoveToUnit(enemy)
-	end
+local function CustomFight(bot, enemy)
 	if Eclipse(bot, enemy) or LucentBeam(bot, enemy) then
 		return
 	end
-	bot.ref:Action_AttackUnit(enemy, true)
+	AttackUnit(bot, enemy)
 end
 
-priority["fight"][2] = Fight
+priority["fight"][2] = CustomFight
 
 function Think()
 	UpdateBot(bot)

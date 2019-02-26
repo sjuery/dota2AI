@@ -4,7 +4,7 @@ function HealPriority(bot)
 	if bot.hp_percent < 0.72
 		and (bot.ref:HasModifier("modifier_fountain_aura") or bot.ref:HasModifier("modifier_fountain_aura_buff"))
 	then
-		return {80, {"fountain", nil}}
+		return {40, {"fountain", nil}}
 	end
 
 	local items = GetItems(bot)
@@ -13,7 +13,7 @@ function HealPriority(bot)
 	if salve ~= nil 
 		and not bot.ref:HasModifier("modifier_flask_healing")
 		and not bot.ref:WasRecentlyDamagedByAnyHero(3.0) and not bot.ref:WasRecentlyDamagedByTower(3.0)
-		and (bot.hp_max - bot.hp_current > 400 or bot.hp_percent < 0.33)
+		and (bot.hp_max - bot.hp_current > 400 or bot.hp_percent < 0.40)
 	then
 		return {60, {salve, bot.ref}}
 	end
@@ -102,11 +102,11 @@ function Heal(bot, params)
 	end
 
 	if heal_item == "shrine" then
-		bot.ref:Action_MoveToLocation(heal_target:GetLocation())
-		if GetUnitToUnitDistance(bot.ref, heal_target) < 400
-			and not bot.ref:HasModifier("modifier_flask_healing") and not bot.ref:HasModifier("modifier_filler_heal")
+		if GetUnitToUnitDistance(bot.ref, heal_target) < 400 and not bot.ref:HasModifier("modifier_flask_healing")
 		then
 			bot.ref:Action_UseShrine(heal_target)
+		else
+			bot.ref:Action_MoveToLocation(heal_target:GetLocation())
 		end
 		return
 	end

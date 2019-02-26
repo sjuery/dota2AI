@@ -150,6 +150,28 @@ function GetNearbyVisibleBarracks(bot, radius, enemy)
 	return visible_barracks
 end
 
+function IsMelee(unit)
+	return unit:GetAttackRange() < 320.0
+end
+
+function IsImmune(unit)
+	return unit:IsAttackImmune() 
+		or unit:HasModifier("modifier_item_cyclone")
+		or unit:HasModifier("modifier_ghost_state")
+		or unit:HasModifier("modifier_item_ethereal_blade_ethereal")
+		or unit:HasModifier("modifier_invulnerable")
+		or unit:HasModifier("modifier_attack_immune") 
+end
+
+function GetDirection(unit)
+	local angle = math.rad(GetFacing())
+	return Vector(math.sin(angle), math.cos(angle))
+end
+
+function Normalize(vec)
+	return vec / GetDistance(vec, Vector(0, 0))
+end
+
 function ShouldTrade(bot, target)
 	if (bot.hp_current / bot.total_damage) > TimeToLive(target) then
 		return 1
@@ -189,4 +211,112 @@ function TotalDamage(hero)
 		end
 	end
 	return total_damage / 100
+end
+
+function AttackUnit(bot, enemy)
+	-- Range info
+	local range = bot.ref:GetBoundingRadius() + bot.ref:GetAttackRange()
+	local distance = GetUnitToUnitDistance(bot.ref, enemy)
+
+	-- Basic attack info
+	local attack_last = bot.ref:GetLastAttackTime()
+	local attack_time = bot.ref:GetSecondsPerAttack()
+	local attack_speed = bot.ref:GetAttackSpeed()
+
+	local enemy_pos = enemy:GetLocation()
+	local away = Normalize(bot.location - enemy_pos)
+
+	if distance < range then
+		if IsMelee(bot.ref) then
+			-- Use attack cooldown time to manuver
+			if attack_time + attack_last > GameTime() and distance > 50 then
+				bot.ref:Action_MoveToUnit(enemy)
+			else
+				bot.ref:Action_AttackUnit(enemy, true)
+			end
+		else
+			-- Use attack cooldown time to manuver
+			if attack_time + attack_last > GameTime() then
+				--if bot.lane == "mid" and GetHeightLevel(bot.location) < GetHeightLevel(enemy_pos) then
+				--	-- Move to high ground
+				--end
+				-- Move out of melee range if enemy is a melee hero
+				if IsMelee(enemy) and enemy:GetBoundingRadius() + enemy:GetAttackRange() > distance then
+					bot.ref:Action_MoveToLocation(bot.location + away * 20)
+				-- Move closer to enemy
+				elseif distance > 250 then
+					bot.ref:Action_MoveToUnit(enemy)
+				end
+			else
+				bot.ref:Action_AttackUnit(enemy, true)
+			end
+		end
+	else
+		bot.ref:Action_MoveToUnit(enemy)
+	end
+end
+
+-- Attacking tower unit or nil
+local function GetAttackingTower(bot)
+	local towers = {
+		TOWER_TOP_1,
+		TOWER_TOP_2,
+		TOWER_TOP_3,
+		TOWER_MID_1,
+		TOWER_MID_2,
+		TOWER_MID_3,
+		TOWER_BOT_1,
+		TOWER_BOT_2,
+		TOWER_BOT_3,
+		TOWER_BASE_1,
+		TOWER_BASE_2
+	}
+
+	local attacking_tower = nil
+	local other_team = GetEnemyTeam()
+
+    for i = 1, #towers do
+		if GetTowerAttackTarget(other_team, towers[i]) == bot.ref then
+			attacking_tower = GetTower(other_team, towers[i])
+			break
+		end
+    end
+
+    return attacking_tower
+end
+
+function DeAggroTower(bot)
+	local attacking_tower = GetAttackingTower(bot)
+	if attacking_tower == nil then
+		return false
+	end
+
+	local allied_creeps = bot.ref:GetNearbyLaneCreeps(1600, false)
+	local other_creeps = bot.ref:GetNearbyCreeps(1600, false)
+	for i = 1, #other_creeps do
+		table.insert(allied_creeps, other_creeps[i])
+	end
+
+	local range = bot.ref:GetBoundingRadius() + bot.ref:GetAttackRange()
+
+	local meatshield_creeps = {}
+	if #allied_creeps > 0 and #enemy_towers > 0 then
+		-- Search for nearby allied creeps to take tower hits
+		for i = 1, #allied_creeps do
+			for i = 1, #enemy_towers do
+				if GetUnitToUnitDistance(allied_creeps[i], enemy_towers[i]) < 900
+					and GetUnitToUnitDistance(bot.ref, allied_creeps[i]) < range
+				then
+					table.insert(meatshield_creeps, allied_creeps[i])
+				end
+			end
+		end
+	end
+
+	if #meatshield_creeps == 0
+		return false
+	end
+
+	AttackUnit(bot, meatshield_creeps[1], true)
+	return true
 end

@@ -8,18 +8,19 @@ local priority = DeepCopy(generic_priority)
 local buy_order = {
 	"item_tango",
 	"item_tango",
-	"item_tango",
+	"item_flask",
 	"item_stout_shield",
+	"item_quelling_blade",
 	-- Mage boots
 	"item_boots",
 	"item_energy_booster",
+	-- Vanguard
+	"item_ring_of_regen",
+	"item_vitality_booster",
 	-- Blade mail
 	"item_chainmail",
 	"item_robe",
 	"item_broadsword",
-	-- Vanguard
-	"item_vitality_booster",
-	"item_ring_of_regen",
 	-- Scepter
 	"item_ogre_axe",
 	"item_point_booster",
@@ -58,56 +59,62 @@ local bot = {
 
 table.insert(g, bot)
 
-local function priorityQ(bot)
-	local abilityQ = bot.ref:GetAbilityByName(SKILL_Q)
-	local aoe_heroes = bot.ref:FindAoELocation(true, true, bot.ref:GetLocation(), abilityQ:GetCastRange(), 400, abilityQ:GetSpecialValueFloat("delay_plus_castpoint_tooltip"), 0)
-	local aoe_minions = bot.ref:FindAoELocation(true, false, bot.ref:GetLocation(), abilityQ:GetCastRange(), 400, abilityQ:GetSpecialValueFloat("delay_plus_castpoint_tooltip"), 0)
+local function FireStorm(bot)
+	local fire_storm = bot.ref:GetAbilityByName(SKILL_Q)
 
-	if bot.ref:IsChanneling() or bot.ref:IsUsingAbility() or abilityQ:GetManaCost() >= bot.mp_current or abilityQ:IsFullyCastable() == false then
-		return
+	if bot.ref:IsChanneling() or bot.ref:IsUsingAbility() or fire_storm:GetManaCost() >= bot.mp_current or not fire_storm:IsFullyCastable() then
+		return false
 	end
+
+	local aoe_heroes = bot.ref:FindAoELocation(true, true, bot.ref:GetLocation(),
+		fire_storm:GetCastRange(), 400, fire_storm:GetSpecialValueFloat("delay_plus_castpoint_tooltip"), 0)
+	local aoe_minions = bot.ref:FindAoELocation(true, false, bot.ref:GetLocation(),
+		fire_storm:GetCastRange(), 400, fire_storm:GetSpecialValueFloat("delay_plus_castpoint_tooltip"), 0)
+
+	if aoe_heroes.count >= 1 and aoe_minions.count > 2 then
+		bot.ref:Action_UseAbilityOnLocation(fire_storm, aoe_heroes.targetloc)
+		return true
+	elseif aoe_heroes.count >= 2 then
+		bot.ref:Action_UseAbilityOnLocation(fire_storm, aoe_heroes.targetloc)
+		return true
+	elseif aoe_minions.count > 3 then
+		bot.ref:Action_UseAbilityOnLocation(fire_storm, aoe_minions.targetloc)
+		return true
+	end
+
+	return false
+end
+
+local function PitOfMalice(bot)
+	local pit_of_malice = bot.ref:GetAbilityByName(SKILL_W)
+
+	if bot.ref:IsChanneling() or bot.ref:IsUsingAbility() or pit_of_malice:GetManaCost() >= bot.mp_current or not pit_of_malice:IsFullyCastable() then
+		return false
+	end
+
+	local aoe_heroes = bot.ref:FindAoELocation(true, true, bot.ref:GetLocation(),
+		pit_of_malice:GetCastRange(), 375, pit_of_malice:GetSpecialValueFloat("delay_plus_castpoint_tooltip"), 0)
+	local aoe_minions = bot.ref:FindAoELocation(true, false, bot.ref:GetLocation(),
+		pit_of_malice:GetCastRange(), 375, pit_of_malice:GetSpecialValueFloat("delay_plus_castpoint_tooltip"), 0)
 
 	if aoe_heroes.count > 1 and aoe_minions.count > 2 then
-		bot.ref:Action_UseAbilityOnLocation(abilityQ, aoe_heroes.targetloc)
+		bot.ref:Action_UseAbilityOnLocation(pit_of_malice, aoe_heroes.targetloc)
+		return true
 	elseif aoe_heroes.count > 2 then
-		bot.ref:Action_UseAbilityOnLocation(abilityQ, aoe_heroes.targetloc)
+		bot.ref:Action_UseAbilityOnLocation(pit_of_malice, aoe_heroes.targetloc)
+		return true
 	elseif aoe_minions.count > 3 then
-		bot.ref:Action_UseAbilityOnLocation(abilityQ, aoe_minions.targetloc)
-	end
-end
-
-local function priorityW(bot)
-	local abilityW = bot.ref:GetAbilityByName(SKILL_W)
-	local aoe_heroes = bot.ref:FindAoELocation(true, true, bot.ref:GetLocation(), abilityW:GetCastRange(), 375, abilityW:GetSpecialValueFloat("delay_plus_castpoint_tooltip"), 0)
-	local aoe_minions = bot.ref:FindAoELocation(true, false, bot.ref:GetLocation(), abilityW:GetCastRange(), 375, abilityW:GetSpecialValueFloat("delay_plus_castpoint_tooltip"), 0)
-
-	if bot.ref:IsChanneling() or bot.ref:IsUsingAbility() or abilityW:GetManaCost() >= bot.mp_current or abilityW:IsFullyCastable() == false then
-		return
+		bot.ref:Action_UseAbilityOnLocation(pit_of_malice, aoe_minions.targetloc)
+		return true
 	end
 
-	if aoe_heroes.count > 1 and aoe_minions.count > 2 then
-		bot.ref:Action_UseAbilityOnLocation(abilityW, aoe_heroes.targetloc)
-	elseif aoe_heroes.count > 2 then
-		bot.ref:Action_UseAbilityOnLocation(abilityW, aoe_heroes.targetloc)
-	elseif aoe_minions.count > 3 then
-		bot.ref:Action_UseAbilityOnLocation(abilityW, aoe_minions.targetloc)
-	end
+	return false
 end
-
-local function customFarm(bot, creep)
-	front = GetLaneFrontAmount(GetTeam(), bot.lane, false)
-	enemyfront = GetLaneFrontAmount(GetEnemyTeam(), bot.lane, false)
-	front = Min(front, enemyfront)
-	dest = GetLocationAlongLane(bot.lane, Min(1.0, front))
-	bot.ref:Action_MoveToLocation(dest)
-	bot.ref:Action_AttackUnit(creep, true)
-	priorityQ(bot)
-	priorityW(bot)
-end
-
-priority["farm"][2] = customFarm
 
 function Think()
 	UpdateBot(bot)
 	Thonk(bot, priority)
+	if FireStorm(bot) or PitOfMalice(bot) then
+		return
+	end
 end
