@@ -17,9 +17,7 @@ function FightPriority(bot)
 			if IsLocationVisible(pos) or IsLocationPassable(pos) then
 				for i = 1, #towers do
 					if GetDistance(pos, towers[i]:GetLocation()) > 900
-						or (enemy_heroes[i]:GetHealth() < 0.15
-							and bot.ref:GetEstimatedDamageToTarget(true, bot.ref, 4, DAMAGE_TYPE_PHYSICAL) > bot.hp_current)
-						or GetUnitToLocationDistance(bot.ref, pos) < bot.ref:GetAttackRange()
+						or (bot.ref:GetEstimatedDamageToTarget(true, bot.ref, 4, DAMAGE_TYPE_PHYSICAL) > bot.hp_current)
 					then
 						table.insert(targets, enemy_heroes[i])
 					end
@@ -69,9 +67,9 @@ end
 -- 	["modifier_stunned"] = 15,
 -- 	["modifier_item_blade_mail_reflect"] = -40,
 -- 	["modifier_bashed"] = 5,
--- 	["modifier_rooted"] = 5
---  ["modifier_silence"] = 10
---	["modifier_tower_armor_bonus"] = -10
+-- 	["modifier_rooted"] = 5,
+-- 	["modifier_silence"] = 10,
+-- 	["modifier_tower_armor_bonus"] = -40
 -- }
 
 -- local allie_modifers = {
@@ -86,15 +84,61 @@ end
 -- 	["modifier_rune_regen"] = 5,
 -- 	["modifier_rune_doubledamage"] = 15,
 -- 	["modifier_rune_arcane"] = 5,
---  ["modifier_silence"] = -10,
---  ["modifier_rooted"] = 5,
+-- 	["modifier_silence"] = -10,
+-- 	["modifier_rooted"] = 5
+-- }
+
+-- local function CompareTargets(a, b)
+-- {
+
 -- }
 
 -- function FightPriority(bot)
--- 	local enemy_heroes = bot.ref:GetNearbyHeroes(1200, true, BOT_MODE_NONE)
--- 	local allied_heroes = bot.ref:GetNearbyHeroes(1200, false, BOT_MODE_NONE)
+-- 	local enemy_heroes = bot.ref:GetNearbyHeroes(1600, true, BOT_MODE_NONE)
+-- 	local allied_heroes = bot.ref:GetNearbyHeroes(1600, false, BOT_MODE_NONE)
+-- 	local range = bot.ref:GetBoundingRadius() + bot.ref:GetAttackRange()
 
 -- 	bot.target = target
+
+-- 	local targets = {}
+-- 	if #enemy_heroes > 0 then
+-- 		local towers = GetNearbyVisibleTowers(bot, 1600, true)
+
+-- 		-- Search for nearby enemy heroes (Not under enemy towers)
+-- 		for i = 1, #enemy_heroes do
+-- 			local pos = enemy_heroes[i]:GetLocation()
+-- 			if IsLocationVisible(pos) or IsLocationPassable(pos) then
+-- 				for i = 1, #towers do
+
+-- 					if GetDistance(pos, towers[i]:GetLocation()) > 900
+-- 						or (bot.ref:GetEstimatedDamageToTarget(true, bot.ref, 4, DAMAGE_TYPE_PHYSICAL) > bot.hp_current) 
+-- 						or (GetUnitToLocationDistance(bot.ref, pos) < range and not under_tower)
+-- 					then
+-- 						table.insert(targets, enemy_heroes[i])
+-- 					end
+-- 				end
+-- 				if #towers == 0 then
+-- 					table.insert(targets, enemy_heroes[i])
+-- 				end
+-- 			end
+-- 		end
+-- 	end
+
+-- 	if #targets == 0 then
+-- 		return {0, nil}
+-- 	end
+
+-- 	local target = targets[1]
+
+-- 	-- Find weakest target in range
+-- 	for i = 1, #targets do
+-- 		if GetUnitToUnitDistance(bot.ref, targets[i]) < bot.ref:GetAttackRange()
+-- 			and targets[i]:GetHealth() < target:GetHealth()
+-- 		then
+-- 			target = targets[i]
+-- 		end
+-- 	end
+
 -- end
 
 function Fight(bot, enemy)

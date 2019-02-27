@@ -35,7 +35,7 @@ function PushPriority(bot)
 end
 
 function Push(bot, enemy_tower)
-	--if DeAggroTower() then
+	--if DeAggroTower(bot) then
 	--	return
 	--end
 

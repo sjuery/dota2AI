@@ -7,21 +7,24 @@ local buy_order = {
 	"item_tango",
 	"item_tango",
 	"item_flask",
+	"item_clarity",
 	"item_blight_stone",
+	-- Phase boots
 	"item_boots",
 	"item_blades_of_attack",
 	"item_chainmail",
-	-- Maelstrom
-	"item_mithril_hammer",
-	"item_javelin",
+	-- Orchid Malevolence,
+	"item_sobi_mask",
+	"item_quarterstaff",
+	"item_robe",
+	"item_sobi_mask",
+	"item_quarterstaff",
+	"item_robe",
+	"item_recipe_orchid",
 	-- Desolator
 	"item_blades_of_attack",
 	"item_mithril_hammer",
 	"item_mithril_hammer",
-	-- Vladmir's Offering
-	"item_lifesteal",
-	"item_sobi_mask",
-	"item_recipe_vladmir",
 	-- Assault Cuirass
 	"item_hyperstone",
 	"item_chainmail",
@@ -135,7 +138,7 @@ local function NaturesWrath(bot, enemy)
 		return false
 	end
 
-	if GetUnitHealthPercentage(enemy) < 0.7 then
+	if GetUnitHealthPercentage(enemy) < 0.7 and GetUnitToUnitDistance(bot.ref, enemy) < 700 then
 		bot.ref:Action_UseAbilityOnLocation(natures_wrath, enemy:GetLocation())
 		return true
 	end

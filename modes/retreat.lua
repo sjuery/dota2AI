@@ -80,9 +80,5 @@ end
 
 function Retreat(bot, retreat_time)
 	bot.retreat = retreat_time
-
-	--if DeAggroTower() then
-	--	return
-	--end
 	bot.ref:Action_MoveToLocation(RetreatLocation(bot))
 end

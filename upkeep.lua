@@ -70,10 +70,11 @@ function UseItems(bot)
 		then
 			bot.ref:Action_UseAbility(power_treads)
 			return
-		end
-		local primary_attribute = bot.ref:GetPrimaryAttribute()
-		if tread_stat ~= primary_attribute then
-			bot.ref:Action_UseAbility(power_treads)
+		else
+			local primary_attribute = bot.ref:GetPrimaryAttribute()
+			if tread_stat ~= primary_attribute then
+				bot.ref:Action_UseAbility(power_treads)
+			end
 		end
 	end
 end
@@ -177,7 +178,7 @@ function UpKeep(bot)
 		if bot.ref:IsAlive()
 			and state ~= COURIER_STATE_DEAD
 			and state ~= COURIER_STATE_DELIVERING_ITEMS
-			and (bot.ref:GetStashValue() > 500 or bot.ref:GetCourierValue() > 0 or important_item)
+			and (bot.ref:GetStashValue() > 500 or bot.ref:GetCourierValue() > 0 or important_item or bot.lane == "mid")
 		then
 			bot.ref:ActionImmediate_Courier(courier, COURIER_ACTION_TAKE_AND_TRANSFER_ITEMS)
 			return

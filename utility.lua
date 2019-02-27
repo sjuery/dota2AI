@@ -163,9 +163,9 @@ function IsImmune(unit)
 		or unit:HasModifier("modifier_attack_immune") 
 end
 
-function GetDirection(unit)
+function GetDirectionVector(unit)
 	local angle = math.rad(GetFacing())
-	return Vector(math.sin(angle), math.cos(angle))
+	return Vector(math.cos(angle), math.sin(angle))
 end
 
 function Normalize(vec)
@@ -241,10 +241,10 @@ function AttackUnit(bot, enemy)
 				--	-- Move to high ground
 				--end
 				-- Move out of melee range if enemy is a melee hero
-				if IsMelee(enemy) and enemy:GetBoundingRadius() + enemy:GetAttackRange() > distance then
+				if IsMelee(enemy) and (enemy:GetBoundingRadius() + enemy:GetAttackRange()) * 1.3 > distance then
 					bot.ref:Action_MoveToLocation(bot.location + away * 20)
 				-- Move closer to enemy
-				elseif distance > 250 then
+				elseif distance > range * 0.7 then
 					bot.ref:Action_MoveToUnit(enemy)
 				end
 			else
@@ -286,6 +286,14 @@ local function GetAttackingTower(bot)
 end
 
 function DeAggroTower(bot)
+	if not bot.de_aggro then
+		bot.de_aggro = DotaTime() - 1.0
+	end
+
+	if DotaTime() < bot.de_aggro + 1.0 then
+		return false
+	end
+
 	local attacking_tower = GetAttackingTower(bot)
 	if attacking_tower == nil then
 		return false
@@ -313,7 +321,7 @@ function DeAggroTower(bot)
 		end
 	end
 
-	if #meatshield_creeps == 0
+	if #meatshield_creeps == 0 then
 		return false
 	end
 
