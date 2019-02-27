@@ -1,6 +1,8 @@
 require(GetScriptDirectory() .. "/bot_modes")
 require(GetScriptDirectory() .. "/utility")
 
+local g = require(GetScriptDirectory() .. "/global")
+
 local priority = DeepCopy(generic_priority)
 
 local buy_order = {
@@ -73,6 +75,8 @@ local bot = {
 	["buy_order"] = buy_order,
 	["ability_order"] = ability_order
 }
+
+table.insert(g, bot)
 
 local function SlowFreeze(bot, enemy)
 	local freeze = bot.ref:GetAbilityByName(SKILL_Q)

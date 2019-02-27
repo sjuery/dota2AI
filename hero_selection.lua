@@ -1,3 +1,11 @@
+hero_names = {
+	"Wolverine",
+	"SJuery",
+	"Mr.Robot",
+	"Steven from Sweden",
+	"Theo St.George Walton"
+}
+
 carry_pool = {
 	"npc_dota_hero_luna",
 	"npc_dota_hero_drow_ranger",
@@ -131,6 +139,10 @@ function Think()
 	end
 end
 
+function GetBotNames()
+	return hero_names
+end
+
 function PickCaptain()
 	SetCMCaptain(1)
 end
@@ -139,7 +151,7 @@ function BansHero()
 	if not IsPlayerInHeroSelectionControl(GetCMCaptain()) then
 		return
 	end
-	heroToBan = hero_pool[math.random(108)]
+	heroToBan = hero_pool[math.random(#hero_pool)]
 	if IsCMBannedHero(heroToBan) == 1 or IsCMPickedHero(TEAM_RADIANT, heroToBan) == 1 or IsCMPickedHero(TEAM_DIRE, heroToBan) == 1 then
 		BansHero()
 	else
