@@ -9,8 +9,8 @@ local buy_order = {
 	"item_tango",
 	"item_tango",
 	"item_flask",
+	"item_clarity",
 	"item_stout_shield",
-	"item_quelling_blade",
 	-- Mage boots
 	"item_boots",
 	"item_energy_booster",
@@ -94,17 +94,9 @@ local function PitOfMalice(bot)
 
 	local aoe_heroes = bot.ref:FindAoELocation(true, true, bot.ref:GetLocation(),
 		pit_of_malice:GetCastRange(), 375, pit_of_malice:GetSpecialValueFloat("delay_plus_castpoint_tooltip"), 0)
-	local aoe_minions = bot.ref:FindAoELocation(true, false, bot.ref:GetLocation(),
-		pit_of_malice:GetCastRange(), 375, pit_of_malice:GetSpecialValueFloat("delay_plus_castpoint_tooltip"), 0)
 
-	if aoe_heroes.count > 1 and aoe_minions.count > 2 then
+	if aoe_heroes.count > 2 then
 		bot.ref:Action_UseAbilityOnLocation(pit_of_malice, aoe_heroes.targetloc)
-		return true
-	elseif aoe_heroes.count > 2 then
-		bot.ref:Action_UseAbilityOnLocation(pit_of_malice, aoe_heroes.targetloc)
-		return true
-	elseif aoe_minions.count > 3 then
-		bot.ref:Action_UseAbilityOnLocation(pit_of_malice, aoe_minions.targetloc)
 		return true
 	end
 

@@ -43,7 +43,6 @@ end
 
 function Teleport(bot, params)
 	local tp_scroll, target = unpack(params)
-	print(tp_scroll)
 	if tp_scroll then
 		bot.ref:Action_ClearActions(true)
 		bot.ref:Action_UseAbilityOnLocation(tp_scroll, target)

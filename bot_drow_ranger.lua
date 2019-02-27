@@ -11,6 +11,7 @@ local buy_order = {
 	"item_tango",
 	-- Power Threads
 	"item_boots",
+	"item_tango",
 	"item_gloves",
 	"item_belt_of_strength",
 	-- Dragon Lance
@@ -82,7 +83,8 @@ local function SlowFreeze(bot, enemy)
 	local range = freeze:GetCastRange()
 
 	if not freeze:IsTrained() or bot.mp_current < freeze:GetManaCost()
-		or not freeze:IsFullyCastable() or bot.ref:IsChanneling() or bot.ref:IsUsingAbility() then
+		or not freeze:IsFullyCastable() or bot.ref:IsChanneling() or bot.ref:IsUsingAbility()
+		or GetUnitToUnitDistance(bot.ref, enemy) > range then
 		return false
 	end
 
@@ -137,7 +139,7 @@ local function CustomFight(bot, enemy)
 	if SlowFreeze(bot) then
 		return
 	end
-	bot.ref:Action_AttackUnit(value, true)
+	AttackUnit(bot, enemy)
 end
 
 priority["fight"][2] = CustomFight
