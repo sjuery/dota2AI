@@ -7,7 +7,7 @@ function ShopPriority(bot)
 	end
 
 	if #buy_order == 0 or bot.ref:GetGold() < GetItemCost(buy_order[1]) - 10 then
-		return {0, nil}
+		return 0, nil
 	end
 	local item = buy_order[1]
 
@@ -28,14 +28,14 @@ function ShopPriority(bot)
 	if IsItemPurchasedFromSideShop(item) and GetUnitToLocationDistance(bot.ref, side_shop_pos) < 3000
 		and IsLocationPassable(side_shop_pos)
 	then
-		return {40, side_shop_pos}
+		return 40, side_shop_pos
 	elseif IsItemPurchasedFromSecretShop(item) and GetUnitToLocationDistance(bot.ref, secret_shop_pos) < 6000
 		and IsLocationPassable(secret_shop_pos)
 	then
-		return {40, secret_shop_pos}
+		return 40, secret_shop_pos
 	end
 
-	return {0, nil}
+	return 0, nil
 end
 
 function Shop(bot, shop_pos)

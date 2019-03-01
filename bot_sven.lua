@@ -86,12 +86,12 @@ end
 
 
 
-local function Fight(bot, enemy)
+local function CustomFight(bot, enemies)
 
-	bot.ref:Action_AttackUnit(value, true)
+	bot.ref:Action_AttackUnit(enemies, true)
 end
 
-priority["fight"] = Fight
+priority["fight"] = CustomFight
 
 function Think()
 	UpdateBot(bot)

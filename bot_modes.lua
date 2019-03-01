@@ -31,7 +31,7 @@ function Thonk(bot, priority)
 	local priority_name
 
 	for name, thonkage in pairs(priority) do
-		local priority, value = unpack(thonkage[1](bot))
+		local priority, value = thonkage[1](bot)
 		if priority > priority_best then
 			priority_best = priority
 			priority_value = value

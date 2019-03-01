@@ -30,7 +30,7 @@ function FightPriority(bot)
 	end
 
 	if #targets == 0 then
-		return {0, nil}
+		return 0, nil
 	end
 
 	local target = targets[1]
@@ -46,19 +46,19 @@ function FightPriority(bot)
 
 	local target_hp_percent = GetUnitHealthPercentage(target)
 	if target_hp_percent < 0.2 then
-		return {60, target}
+		return 60, target
 	elseif #heroes + 1 >= #enemy_heroes 
 		and target_hp_percent < 0.33
 		and bot.hp_current >= target_hp_percent * 1.2
 	then
-		return {50, target}
+		return 50, target
 	elseif #heroes + 1 == #enemy_heroes and #allied_creeps + 1 >= #enemy_creeps then
-		return {30, target}
+		return 30, target
 	elseif #heroes + 1 > #enemy_heroes then
-		return {55, target}
+		return 55, target
 	end
 
-	return {0, target}
+	return 0, target
 end
 
 -- local enemy_modifiers = {
@@ -88,10 +88,28 @@ end
 -- 	["modifier_rooted"] = 5
 -- }
 
--- local function CompareTargets(a, b)
--- {
+-- local function TargetValue(enemy)
+-- 	local max_modifier_weight = 40
 
--- }
+-- 	local value = 0
+
+-- 	local modifiers = enemy:GetModifierList()
+-- 	for i = 1, #modifiers do
+-- 		value = value + enemy_modifiers[modifiers[i]]
+-- 	end
+-- 	value = Clamp(value, -max_modifier_weight, max_modifier_weight)
+
+-- 	local hp = GetUnitHealthPercentage(enemy)
+-- 	if hp < 0.5 then
+-- 		value = value + 5
+-- 	end
+-- 	if hp < 0.25 then
+-- 		value = value + 10
+-- 	end
+-- end
+
+-- local function CompareTargets(a, b)
+-- end
 
 -- function FightPriority(bot)
 -- 	local enemy_heroes = bot.ref:GetNearbyHeroes(1600, true, BOT_MODE_NONE)
@@ -141,6 +159,6 @@ end
 
 -- end
 
-function Fight(bot, enemy)
-	AttackUnit(bot, enemy)
+function Fight(bot, enemies)
+	AttackUnit(bot, enemies)
 end

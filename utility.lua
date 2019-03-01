@@ -63,6 +63,11 @@ function GetItems(bot)
 	return items
 end
 
+function GetItem(bot, name)
+	local slot = bot.ref:FindItemSlot(name)
+	return bot.ref:GetItemInSlot(slot)
+end
+
 function GetItemsCount(bot)
 	local count = 0
 	for i = 0, 5 do
@@ -72,6 +77,13 @@ function GetItemsCount(bot)
 		end
 	end
 	return count
+end
+
+function CanCast(bot, ability)
+	return bot.mp_current < ability:GetManaCost()
+		and ability:IsFullyCastable()
+		and not bot.ref:IsChanneling()
+		and not bot.ref:IsUsingAbility()
 end
 
 function GetStartingLane(lane)
@@ -128,26 +140,26 @@ function GetUnitHealthPercentage(unit)
 	return unit:GetHealth() / unit:GetMaxHealth()
 end
 
-function GetNearbyVisibleTowers(bot, radius, enemy)
-	local visible_towers = {}
-	local towers = bot.ref:GetNearbyTowers(1600, enemy)
-	for i = 1, #towers do
-		if towers[i]:GetHealth() > 0 then
-			table.insert(visible_towers, towers[i])
+local function FilterAlive(units)
+	local alive = {}
+	for i = 1, #units do
+		if units[i]:GetHealth() > 0 then
+			table.insert(alive, units[i])
 		end
 	end
-	return visible_towers
+	return alive
+end
+
+function GetNearbyVisibleTowers(bot, radius, enemy)
+	return FilterAlive(bot.ref:GetNearbyTowers(radius, enemy))
 end
 
 function GetNearbyVisibleBarracks(bot, radius, enemy)
-	local visible_barracks = {}
-	local barracks = bot.ref:GetNearbyBarracks(radius, enemy)
-	for i = 1, #barracks do
-		if barracks[i]:GetHealth() > 0 then
-			table.insert(visible_barracks, barracks[i])
-		end
-	end
-	return visible_barracks
+	return FilterAlive(bot.ref:GetNearbyBarracks(radius, enemy))
+end
+
+function GetNearbyVisibleShrines(bot, radius)
+	return FilterAlive(bot.ref:GetNearbyShrines(radius, enemy))
 end
 
 function IsMelee(unit)

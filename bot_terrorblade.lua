@@ -113,11 +113,11 @@ local function Metamorphosis(bot, enemy)
 	return false
 end
 
-local function CustomFight(bot, enemy)
-	if SummonReflection(bot) or SummonImage(bot) or Metamorphosis(bot, enemy) then
+local function CustomFight(bot, enemies)
+	if SummonReflection(bot) or SummonImage(bot) or Metamorphosis(bot, enemies) then
 		return
 	end
-	bot.ref:Action_AttackUnit(value, true)
+	AttackUnit(bot, enemies)
 end
 
 priority["fight"][2] = CustomFight
