@@ -36,7 +36,7 @@ function UpdateBot(bot)
     name = bot.ref:GetUnitName()
 	bot.name = string.sub(name, 15, string.len(name))
 	bot.hp_max = bot.ref:GetMaxHealth()
-	bot.hp_current =  bot.ref:GetHealth()
+	bot.hp_current = bot.ref:GetHealth()
 	bot.hp_percent = bot.hp_current / bot.hp_max
 	bot.mp_max = bot.ref:GetMaxMana()
 	bot.mp_current = bot.ref:GetMana()
@@ -80,10 +80,10 @@ function GetItemsCount(bot)
 end
 
 function CanCast(bot, ability)
-	return bot.mp_current < ability:GetManaCost()
-		and ability:IsFullyCastable()
-		and not bot.ref:IsChanneling()
-		and not bot.ref:IsUsingAbility()
+	if bot.ref:IsChanneling() or bot.ref:IsUsingAbility() or ability:GetManaCost() >= bot.mp_current or not ability:IsFullyCastable() then
+		return false
+	end
+	return true
 end
 
 function GetStartingLane(lane)
