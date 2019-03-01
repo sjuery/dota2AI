@@ -2,7 +2,7 @@ require(GetScriptDirectory() .. "../utility")
 
 function RunePriority(bot)
 	if DotaTime() <= 0.3 then
-		return {20, nil}
+		return 20, nil
 	end
 
 	local runes = {

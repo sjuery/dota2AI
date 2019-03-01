@@ -78,7 +78,7 @@ local bot = {
 
 table.insert(g, bot)
 
-local function FreezingArrow(bot, enemy)
+local function FreezingArrow(bot)
 	local freeze = bot.ref:GetAbilityByName(SKILL_Q)
 
 	if not freeze:IsTrained() or bot.mp_current < freeze:GetManaCost()
@@ -137,19 +137,14 @@ local function RangePush(bot)
 	return true
 end
 
-priority["fight"][2] = CustomFight
-
 function Think()
 	UpdateBot(bot)
 	Thonk(bot, priority)
 
-	if WaveOfSilence(bot) then
+	if FreezingArrow(bot)
+		or WaveOfSilence(bot)
+		or (bot.priority_name == "push" and RangePush(bot))
+	then
 		return
 	end
-
-	if (bot.priority_name == "push" and RangePush(bot)) then
-		return
-	end
-
-	FreezingArrow(bot)
 end

@@ -90,10 +90,12 @@ local function Purification(bot)
 
 	if lowest_ally == nil then
 		bot.ref:Action_UseAbilityOnEntity(purification, bot.ref)
+		return true
 	end
 
 	if GetUnitToUnitDistance(bot.ref, lowest_ally) >= 400 then
 		bot.ref:Action_MoveToLocation(lowest_ally:GetLocation())
+		return true
 	end
 
 	bot.ref:Action_UseAbilityOnEntity(purification, lowest_ally)
@@ -123,10 +125,12 @@ local function Grace(bot)
 
 	if lowest_ally == nil then
 		bot.ref:Action_UseAbilityOnEntity(grace, bot.ref)
+		return true
 	end
 
 	if GetUnitToUnitDistance(bot.ref, lowest_ally) >= 400 then
 		bot.ref:Action_MoveToLocation(lowest_ally:GetLocation())
+		return true
 	end
 
 	bot.ref:Action_UseAbilityOnEntity(grace, lowest_ally)

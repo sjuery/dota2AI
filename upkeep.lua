@@ -15,7 +15,7 @@ function UseItems(bot)
 
 	-- Use phase boots for retreating, maybe one day for attacking.
 	local phase_boots = items["item_phase_boots"]
-	if phase_boots ~= nil and CanCast(bot, phase_boots)
+	if phase_boots ~= nil and phase_boots:IsFullyCastable()
 		and (bot.priority_name == "retreat" or bot.priority_name == "fight") and bot.priority > 50
 	then
 		print("Using phase boots..")
@@ -33,7 +33,7 @@ function UseItems(bot)
 
 	-- Use soul ring if hp > 60% and we need mana
 	local soul_ring = items["item_soul_ring"]
-	if soul_ring ~= nil and CanCast(bot, soul_ring)
+	if soul_ring ~= nil and soul_ring:IsFullyCastable()
 		and bot.hp_percent > 0.6 and (bot.mp_max - bot.mp_current) > 150 and bot.mp_percent < 0.7
 	then
 		bot.ref:Action_UseAbility(soul_ring)
@@ -42,7 +42,7 @@ function UseItems(bot)
 
 	-- Use moonshard to gain buff if we have no slots
 	local moonshard = items["item_moon_shard"]
-	if moonshard ~= nil and CanCast(bot, moonshard) and GetItemsCount(bot) > 6 then
+	if moonshard ~= nil and moonshard:IsFullyCastable() and GetItemsCount(bot) > 6 then
 		bot.ref:Action_UseAbility(moonshard)
 	end
 
@@ -54,7 +54,7 @@ function UseItems(bot)
 	end
 
 	local satanic = items["item_satanic"]
-	if satanic ~= nil and CanCast(bot, satanic) and bot.hp_percent < 0.8 or bot.priority_name == "fight" then
+	if satanic ~= nil and CanCast(bot, satanic) and (bot.hp_percent < 0.8 or bot.priority_name == "fight") then
 		print("Using satanic")
 		bot.ref:Action_UseAbility(satanic)
 	end
@@ -126,7 +126,7 @@ function UpKeep(bot)
 		then
 			local buy_res = bot.ref:ActionImmediate_PurchaseItem(item)
 			if buy_res == PURCHASE_ITEM_SUCCESS then
-				print("Buying: " .. item)
+				print(bot.name .. " bought: " .. item)
 				table.remove(buy_order, 1)
 			end
 			return
@@ -136,9 +136,10 @@ function UpKeep(bot)
 	-- Add TP scrolls to buy order if needed
 	local slot = bot.ref:FindItemSlot("item_tpscroll")
 	local tp_scroll = bot.ref:GetItemInSlot(slot)
-	if not tp_scroll then
+	if not tp_scroll and (DotaTime() - (bot.last_tp_buy_time or 0)) > 120 then
 		if bot.buy_order and bot.buy_order[1] ~= "item_tpscroll" then
 			table.insert(bot.buy_order, 1, "item_tpscroll")
+			bot.last_tp_buy_time = DotaTime()
 		end
 	end
 

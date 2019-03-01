@@ -51,14 +51,14 @@ function FightPriority(bot)
 		and target_hp_percent < 0.33
 		and bot.hp_current >= target_hp_percent * 1.2
 	then
-		return 50, target
+		return 55, target
 	elseif #heroes + 1 == #enemy_heroes and #allied_creeps + 1 >= #enemy_creeps then
 		return 30, target
 	elseif #heroes + 1 > #enemy_heroes then
 		return 55, target
 	end
 
-	return 0, target
+	return 5, target
 end
 
 -- local enemy_modifiers = {
