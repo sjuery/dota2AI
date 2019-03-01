@@ -12,26 +12,26 @@ function PushPriority(bot)
 		or (#enemy_barracks > 0 and enemy_barracks[1]:HasModifier("modifier_fountain_glyph"))
 		or base:HasModifier("modifier_fountain_glyph")
 	then
-		return {0, nil}
+		return 0, nil
 	end
 
 	if #enemy_towers > 0 and #allied_creeps - #enemy_creeps >= 2 then
-		return {40, enemy_towers[1]}
+		return 40, enemy_towers[1]
 	end
 	if #enemy_towers > 0
 		and enemy_towers[1]:GetHealth() < bot.ref:GetEstimatedDamageToTarget(true, enemy_towers[1], bot.ref:GetAttackSpeed(), DAMAGE_TYPE_PHYSICAL)
 	then
-		return {65, enemy_towers[1]}
+		return 65, enemy_towers[1]
 	end
 	if #enemy_towers == 0 and #enemy_barracks > 0 then
-		return {50, enemy_barracks[1]}
+		return 50, enemy_barracks[1]
 	end
 
 	if not base:IsAttackImmune() and GetUnitToUnitDistance(bot.ref, base) < 1600 then
-		return {50, base}
+		return 50, base
 	end
 
-	return {0, nil}
+	return 0, nil
 end
 
 function Push(bot, enemy_tower)

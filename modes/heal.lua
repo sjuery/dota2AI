@@ -4,7 +4,7 @@ function HealPriority(bot)
 	if bot.hp_percent < 0.72
 		and (bot.ref:HasModifier("modifier_fountain_aura") or bot.ref:HasModifier("modifier_fountain_aura_buff"))
 	then
-		return {40, {"fountain", nil}}
+		return 40, {"fountain", nil}
 	end
 
 	local items = GetItems(bot)
@@ -15,7 +15,7 @@ function HealPriority(bot)
 		and not bot.ref:WasRecentlyDamagedByAnyHero(3.0) and not bot.ref:WasRecentlyDamagedByTower(3.0)
 		and (bot.hp_max - bot.hp_current > 400 or bot.hp_percent < 0.40)
 	then
-		return {60, {salve, bot.ref}}
+		return 65, {salve, bot.ref}
 	end
 
 	local tango = nil
@@ -55,7 +55,7 @@ function HealPriority(bot)
 				end
 			end
 			if tree ~= nil then
-				return {50, {tango, tree}}
+				return 50, {tango, tree}
 			end
 		end
 	end
@@ -66,7 +66,7 @@ function HealPriority(bot)
 		and not bot.ref:WasRecentlyDamagedByAnyHero(3.0) and not bot.ref:WasRecentlyDamagedByTower(3.0)
 		and (bot.mp_max - bot.mp_current > 225)
 	then
-		return {60, {clarity, bot.ref}}
+		return 60, {clarity, bot.ref}
 	end
 
 	local shrines = {
@@ -84,12 +84,12 @@ function HealPriority(bot)
 				or (distance < 1000 and IsShrineHealing(shrine))
 				and not bot.ref:HasModifier("modifier_flask_healing")
 			then
-				return {60, {"shrine", shrine}}
+				return 60, {"shrine", shrine}
 			end
 		end
 	end
 
-	return {0, nil}
+	return 0, nil
 end
 
 function Heal(bot, params)

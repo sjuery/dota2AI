@@ -78,18 +78,20 @@ local bot = {
 
 table.insert(g, bot)
 
-local function SlowFreeze(bot, enemy)
+local function FreezingArrow(bot, enemy)
 	local freeze = bot.ref:GetAbilityByName(SKILL_Q)
-	local range = freeze:GetCastRange()
 
 	if not freeze:IsTrained() or bot.mp_current < freeze:GetManaCost()
 		or not freeze:IsFullyCastable() or bot.ref:IsChanneling() or bot.ref:IsUsingAbility()
-		or GetUnitToUnitDistance(bot.ref, enemy) > range then
-		return false
+	then
+		return
 	end
 
-	bot.ref:Action_UseAbilityOnEntity(freeze, enemy)
-	return true
+	if bot.priority_name == "fight" and freeze:GetToggleState() == false then
+		freeze:ToggleAutoCast()
+	elseif bot.priority_name ~= "fight" and freeze:GetToggleState() == true then
+		freeze:ToggleAutoCast()
+	end
 end
 
 local function WaveOfSilence(bot)
@@ -135,13 +137,6 @@ local function RangePush(bot)
 	return true
 end
 
-local function CustomFight(bot, enemy)
-	if SlowFreeze(bot) then
-		return
-	end
-	AttackUnit(bot, enemy)
-end
-
 priority["fight"][2] = CustomFight
 
 function Think()
@@ -155,4 +150,6 @@ function Think()
 	if (bot.priority_name == "push" and RangePush(bot)) then
 		return
 	end
+
+	FreezingArrow(bot)
 end

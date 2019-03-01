@@ -73,9 +73,7 @@ local function Purification(bot)
 	local lowest_health = 10000000
 	local lowest_ally = nil
 
-	if bot.ref:IsChanneling() or bot.ref:IsUsingAbility() or purification:GetManaCost() >= bot.mp_current
-		or #allied_heroes == 0 or not purification:IsFullyCastable()
-	then
+	if not CanCast(bot, purification) or #allied_heroes == 0 then
 		return false
 	end
 
@@ -108,9 +106,7 @@ local function Grace(bot)
 	local lowest_health = 10000000
 	local lowest_ally = nil
 
-	if not grace:IsTrained() or bot.ref:IsChanneling() or bot.ref:IsUsingAbility() or grace:GetManaCost() >= bot.mp_current
-		or #allied_heroes == 0 or not grace:IsFullyCastable()
-	then
+	if not grace:IsTrained() or CanCast(bot, grace) or #allied_heroes == 0 then
 		return false
 	end
 

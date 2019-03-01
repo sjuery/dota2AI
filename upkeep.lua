@@ -15,7 +15,7 @@ function UseItems(bot)
 
 	-- Use phase boots for retreating, maybe one day for attacking.
 	local phase_boots = items["item_phase_boots"]
-	if phase_boots ~= nil and phase_boots:IsFullyCastable()
+	if phase_boots ~= nil and CanCast(bot, phase_boots)
 		and (bot.priority_name == "retreat" or bot.priority_name == "fight") and bot.priority > 50
 	then
 		print("Using phase boots..")
@@ -25,9 +25,7 @@ function UseItems(bot)
 
 	-- Use blade mail
 	local blade_mail = items["item_blade_mail"]
-	if blade_mail ~= nil and blade_mail:GetManaCost() <= bot.mp_current and blade_mail:IsFullyCastable()
-		and bot.ref:WasRecentlyDamagedByAnyHero(0.2)
-	then
+	if blade_mail ~= nil and CanCast(bot, blade_mail) and bot.ref:WasRecentlyDamagedByAnyHero(0.2) then
 		print("Using blade mail..")
 		bot.ref:Action_UseAbility(blade_mail)
 		return
@@ -35,7 +33,7 @@ function UseItems(bot)
 
 	-- Use soul ring if hp > 60% and we need mana
 	local soul_ring = items["item_soul_ring"]
-	if soul_ring ~= nil and soul_ring:IsFullyCastable()
+	if soul_ring ~= nil and CanCast(bot, soul_ring)
 		and bot.hp_percent > 0.6 and (bot.mp_max - bot.mp_current) > 150 and bot.mp_percent < 0.7
 	then
 		bot.ref:Action_UseAbility(soul_ring)
@@ -44,16 +42,21 @@ function UseItems(bot)
 
 	-- Use moonshard to gain buff if we have no slots
 	local moonshard = items["item_moon_shard"]
-	if moonshard ~= nil and moonshard:IsFullyCastable()
-		and GetItemsCount(bot) > 6
-	then
+	if moonshard ~= nil and CanCast(bot, moonshard) and GetItemsCount(bot) > 6 then
 		bot.ref:Action_UseAbility(moonshard)
 	end
 
 	-- Use manta style if fighting
 	local manta_style = items["item_manta"]
-	if manta_style ~= nil and bot.priority_name == "fight" and manta_style:GetManaCost() <= bot.mp_current and manta_style:IsFullyCastable() then
+	if manta_style ~= nil and CanCast(bot, manta_style) and bot.priority_name == "fight" then
+		print("Using manta style")
 		bot.ref:Action_UseAbility(manta_style)
+	end
+
+	local satanic = items["item_satanic"]
+	if satanic ~= nil and CanCast(bot, satanic) and bot.hp_percent < 0.8 or bot.priority_name == "fight" then
+		print("Using satanic")
+		bot.ref:Action_UseAbility(satanic)
 	end
 
 	local power_treads = items["item_power_treads"]
