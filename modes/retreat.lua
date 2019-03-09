@@ -9,8 +9,8 @@ function RetreatPriority(bot)
 	local enemy_towers = GetNearbyVisibleTowers(bot, 1600, true)
 
 	local enemy_creeps = bot.ref:GetNearbyLaneCreeps(500, true)
-	local allied_heroes = bot.ref:GetNearbyHeroes(1200, true, BOT_MODE_NONE)
-	local enemy_heroes = bot.ref:GetNearbyHeroes(1200, true, BOT_MODE_NONE)
+	local allied_heroes = bot.ref:GetNearbyHeroes(1400, true, BOT_MODE_NONE)
+	local enemy_heroes = bot.ref:GetNearbyHeroes(1400, true, BOT_MODE_NONE)
 
 	if bot.retreat > GameTime() then
 		-- Stop retreat if we are safe and were able to heal
@@ -67,7 +67,7 @@ function RetreatPriority(bot)
 	if bot.ref:WasRecentlyDamagedByCreep(1.0)
 		and bot.hp_percent < 0.9
 	then
-		return 40, DotaTime() + 6
+		return 40, DotaTime() + 1
 	end
 
 	return 0, 0

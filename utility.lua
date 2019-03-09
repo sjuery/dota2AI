@@ -72,7 +72,7 @@ function GetItemsCount(bot)
 	local count = 0
 	for i = 0, 5 do
 		local item = bot.ref:GetItemInSlot(i)
-		if (item ~= nil) then
+		if item ~= nil then
 			count = count + 1
 		end
 	end
@@ -80,7 +80,7 @@ function GetItemsCount(bot)
 end
 
 function CanCast(bot, ability)
-	if bot.ref:IsChanneling() or bot.ref:IsUsingAbility() or ability:GetManaCost() >= bot.mp_current or not ability:IsFullyCastable() then
+	if bot.ref:IsChanneling() or bot.ref:IsUsingAbility() or not ability:IsOwnersManaEnough() or not ability:IsFullyCastable() then
 		return false
 	end
 	return true
@@ -176,7 +176,7 @@ function IsImmune(unit)
 end
 
 function GetDirectionVector(unit)
-	local angle = math.rad(GetFacing())
+	local angle = math.rad(unit:GetFacing())
 	return Vector(math.cos(angle), math.sin(angle))
 end
 
@@ -228,6 +228,7 @@ end
 function AttackUnit(bot, enemy)
 	-- Range info
 	local range = bot.ref:GetBoundingRadius() + bot.ref:GetAttackRange()
+	local enemy_range = enemy:GetBoundingRadius() + enemy:GetAttackRange()
 	local distance = GetUnitToUnitDistance(bot.ref, enemy)
 
 	-- Basic attack info
@@ -240,24 +241,45 @@ function AttackUnit(bot, enemy)
 
 	if distance < range then
 		if IsMelee(bot.ref) then
-			-- Use attack cooldown time to manuver
+			-- Use attack cooldown time to maneuver
 			if attack_time + attack_last > GameTime() and distance > 50 then
 				bot.ref:Action_MoveToUnit(enemy)
 			else
 				bot.ref:Action_AttackUnit(enemy, true)
 			end
 		else
-			-- Use attack cooldown time to manuver
+			local attack_dist = range - 10
+			if enemy:IsHero() then
+				attack_dist = range * 0.7
+			end
+
+			-- Use attack cooldown time to maneuver
 			if attack_time + attack_last > GameTime() then
-				--if bot.lane == "mid" and GetHeightLevel(bot.location) < GetHeightLevel(enemy_pos) then
-				--	-- Move to high ground
-				--end
-				-- Move out of melee range if enemy is a melee hero
-				if IsMelee(enemy) and (enemy:GetBoundingRadius() + enemy:GetAttackRange()) * 1.3 > distance then
-					bot.ref:Action_MoveToLocation(bot.location + away * 20)
 				-- Move closer to enemy
-				elseif distance > range * 0.7 then
+				if distance > attack_dist then
 					bot.ref:Action_MoveToUnit(enemy)
+				-- Move out of range if we can
+				elseif enemy:IsHero() and enemy_range < range then
+					bot.ref:Action_MoveToLocation(bot.location + away * 10.0)
+				elseif bot.lane == mid and GetHeightLevel(bot.location) <= GetHeightLevel(enemy_pos) then
+					local search_range = range
+					local best_height = GetHeightLevel(bot.location)
+					local best_pos = nil
+					for i = 0, 8 do
+						local angle = ((math.pi / 4.0) * i) + math.rad(bot.ref:GetFacing())
+						local search_pos = Normalize(Vector(math.cos(angle), math.sin(angle))) * search_range
+						local height = GetHeightLevel(search_pos)
+						if IsLocationPassable(search_pos) and height > best_height then
+							best_height = height
+							best_pos = search_pos
+						end
+					end
+					if best_height > GetHeightLevel(bot.location) then
+						print(bot.name .. ": moving to high ground")
+						bot.ref:Action_MoveToLocation(best_pos)
+					else
+						print(bot.name .. ": no higher ground.. :(")
+					end
 				end
 			else
 				bot.ref:Action_AttackUnit(enemy, true)
@@ -265,6 +287,31 @@ function AttackUnit(bot, enemy)
 		end
 	else
 		bot.ref:Action_MoveToUnit(enemy)
+	end
+end
+
+function AttackBuilding(bot, building)
+	-- Range info
+	local range = bot.ref:GetBoundingRadius() + bot.ref:GetAttackRange()
+	local distance = GetUnitToUnitDistance(bot.ref, building) - building:GetBoundingRadius()
+
+	-- Basic attack info
+	local attack_last = bot.ref:GetLastAttackTime()
+	local attack_time = bot.ref:GetSecondsPerAttack()
+	local attack_speed = bot.ref:GetAttackSpeed()
+
+	local away = Normalize(RetreatLocation(bot) - bot.location)
+
+	if distance < range then
+		-- Use attack cooldown time to manuver
+		if attack_time + attack_last > GameTime() and distance < range - 10 then
+			-- Stay away from building.
+			bot.ref:Action_MoveToLocation(bot.location + away * 5)
+		else
+			bot.ref:Action_AttackUnit(building, true)
+		end
+	else
+		bot.ref:Action_MoveToUnit(building)
 	end
 end
 

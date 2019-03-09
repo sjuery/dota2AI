@@ -8,18 +8,21 @@ local priority = DeepCopy(generic_priority)
 local buy_order = {
 	"item_tango",
 	"item_flask",
-	"item_quelling_blade",
 	"item_tango",
+	-- Wraith band
+	"item_circlet",
+	"item_slippers",
+	"item_recipe_wraith_band",
 	-- Power Treads
 	"item_boots",
 	"item_gloves",
 	"item_boots_of_elves",
-	-- start satanic
-	"item_lifesteal",
 	-- dragon lance
 	"item_boots_of_elves",
 	"item_boots_of_elves",
 	"item_ogre_axe",
+	-- start satanic
+	"item_lifesteal",
 	-- Yasha
 	"item_boots_of_elves",
 	"item_blade_of_alacrity",
@@ -57,10 +60,18 @@ TALENT_6 = "special_bonus_unique_luna_1"
 TALENT_7 = "special_bonus_lifesteal_25"
 TALENT_8 = "special_bonus_unique_luna_5"
 
+-- local ability_order = {
+-- 	SKILL_Q, SKILL_E, SKILL_Q, SKILL_W, SKILL_Q,
+-- 	SKILL_R, SKILL_Q, SKILL_E, SKILL_E, SKILL_E,
+-- 	TALENT_1, SKILL_R, SKILL_W, SKILL_W, SKILL_W,
+-- 	TALENT_4, SKILL_R, TALENT_5, TALENT_7
+-- }
+
+-- Alt right click build
 local ability_order = {
-	SKILL_Q, SKILL_E, SKILL_Q, SKILL_W, SKILL_Q,
-	SKILL_R, SKILL_Q, SKILL_E, SKILL_E, SKILL_E,
-	TALENT_1, SKILL_R, SKILL_W, SKILL_W, SKILL_W,
+	SKILL_E, SKILL_W, SKILL_E, SKILL_W, SKILL_E,
+	SKILL_W, SKILL_W, SKILL_E, SKILL_Q, SKILL_Q,
+	TALENT_1, SKILL_Q, SKILL_Q, SKILL_R, SKILL_R,
 	TALENT_4, SKILL_R, TALENT_5, TALENT_7
 }
 
@@ -69,6 +80,7 @@ local bot = {
 	["lane"] = GetStartingLane(0),
 	["retreat"] = 0,
 	["buy_order"] = buy_order,
+	["sell_order"] = {"item_wraith_band"},
 	["ability_order"] = ability_order
 }
 
@@ -81,9 +93,9 @@ local function LucentBeam(bot, enemy)
 		return false
 	end
 
-	local cast_range = lucent_beam:GetCastRange() * 0.75
+	local cast_range = lucent_beam:GetCastRange()
 
-	if enemy:GetHealth() <= enemy:GetMaxHealth() * 0.75 then
+	if enemy:GetHealth() <= enemy:GetMaxHealth() then
 		bot.ref:Action_UseAbilityOnEntity(lucent_beam, enemy)
 		return true
 	end
@@ -93,10 +105,7 @@ end
 local function Eclipse(bot, enemy)
 	local eclipse = bot.ref:GetAbilityByName(SKILL_R)
 
-	if not eclipse:IsTrained() or bot.mp_current < eclipse:GetManaCost()
-		or not eclipse:IsFullyCastable()
-		or bot.ref:IsChanneling()
-		or bot.ref:IsUsingAbility()
+	if not eclipse:IsTrained() or not CanCast(bot, eclipse)
 		then
 		return false
 	else

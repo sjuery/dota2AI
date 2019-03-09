@@ -4,9 +4,6 @@ function FightPriority(bot)
 	local enemy_heroes = bot.ref:GetNearbyHeroes(1000, true, BOT_MODE_NONE)
 	local heroes = bot.ref:GetNearbyHeroes(600, false, BOT_MODE_NONE)
 
-	local allied_creeps = bot.ref:GetNearbyLaneCreeps(1000, false)
-	local enemy_creeps = bot.ref:GetNearbyLaneCreeps(1000, true)
-
 	local targets = {}
 	if #enemy_heroes > 0 then
 		local towers = GetNearbyVisibleTowers(bot, 1600, true)
@@ -52,7 +49,7 @@ function FightPriority(bot)
 		and bot.hp_current >= target_hp_percent * 1.2
 	then
 		return 55, target
-	elseif #heroes + 1 == #enemy_heroes and #allied_creeps + 1 >= #enemy_creeps then
+	elseif #heroes + 1 == #enemy_heroes then
 		return 30, target
 	elseif #heroes + 1 > #enemy_heroes then
 		return 55, target
@@ -69,7 +66,8 @@ end
 -- 	["modifier_bashed"] = 5,
 -- 	["modifier_rooted"] = 5,
 -- 	["modifier_silence"] = 10,
--- 	["modifier_tower_armor_bonus"] = -40
+-- 	["modifier_tower_armor_bonus"] = -30
+--	["modifier_drow_ranger_frost_arrows_slow"] = 5
 -- }
 
 -- local allie_modifers = {
@@ -81,11 +79,9 @@ end
 -- 	["modifier_luna_eclipse"] = 15,
 -- 	["modifier_omninight_guardian_angel"] = 15,
 -- 	["modifier_item_blade_mail_reflect"] = 10,
--- 	["modifier_rune_regen"] = 5,
 -- 	["modifier_rune_doubledamage"] = 15,
 -- 	["modifier_rune_arcane"] = 5,
--- 	["modifier_silence"] = -10,
--- 	["modifier_rooted"] = 5
+-- 	["modifier_silence"] = -10
 -- }
 
 -- local function TargetValue(enemy)

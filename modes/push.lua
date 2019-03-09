@@ -34,9 +34,6 @@ function PushPriority(bot)
 	return 0, nil
 end
 
-function Push(bot, enemy_tower)
-	if GetUnitToUnitDistance(bot.ref, enemy_tower) > bot.ref:GetBoundingRadius() + bot.ref:GetAttackRange() then
-		bot.ref:Action_MoveToUnit(enemy_tower)
-	end
-	bot.ref:Action_AttackUnit(enemy_tower, true)
+function Push(bot, enemy_building)
+	AttackBuilding(bot, enemy_building)
 end

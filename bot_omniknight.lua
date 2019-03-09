@@ -62,7 +62,8 @@ local bot = {
 	["retreat"] = 0,
 	["buy_order"] = buy_order,
 	["sell_order"] = {},
-	["ability_order"] = ability_order
+	["ability_order"] = ability_order,
+	["role"] = "support"
 }
 
 table.insert(g, bot)
@@ -108,7 +109,7 @@ local function Grace(bot)
 	local lowest_health = 10000000
 	local lowest_ally = nil
 
-	if not grace:IsTrained() or CanCast(bot, grace) or #allied_heroes == 0 then
+	if not grace:IsTrained() or not CanCast(bot, grace) or #allied_heroes == 0 then
 		return false
 	end
 

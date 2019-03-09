@@ -7,8 +7,12 @@ local priority = DeepCopy(generic_priority)
 
 local buy_order = {
 	"item_tango",
-	"item_flask",
 	"item_tango",
+	"item_flask",
+	-- Wraith band
+	"item_circlet",
+	"item_slippers",
+	"item_recipe_wraith_band",
 	-- Power Threads
 	"item_boots",
 	"item_tango",
@@ -73,25 +77,29 @@ local bot = {
 	["lane"] = LANE_MID,
 	["retreat"] = 0,
 	["buy_order"] = buy_order,
+	["sell_order"] = {"item_wraith_band"},
 	["ability_order"] = ability_order
 }
 
 table.insert(g, bot)
 
-local function FreezingArrow(bot)
+local function FreezingArrow(bot, enemy)
 	local freeze = bot.ref:GetAbilityByName(SKILL_Q)
 
-	if not freeze:IsTrained() or bot.mp_current < freeze:GetManaCost()
-		or not freeze:IsFullyCastable() or bot.ref:IsChanneling() or bot.ref:IsUsingAbility()
+	if not freeze:IsTrained() or not CanCast(bot, freeze)
+		or freeze:GetCastRange() < GetUnitToUnitDistance(bot.ref, enemy)
 	then
 		return
 	end
 
-	if bot.priority_name == "fight" and freeze:GetToggleState() == false then
-		freeze:ToggleAutoCast()
-	elseif bot.priority_name ~= "fight" and freeze:GetToggleState() == true then
-		freeze:ToggleAutoCast()
+	if enemy:HasModifier("modifier_drow_ranger_frost_arrows_slow")
+		or enemy:IsInvulnerable() or enemy:IsMagicImmune()
+	then
+		return false
 	end
+
+	bot.ref:Action_UseAbilityOnEntity(freeze, enemy)
+	return true
 end
 
 local function WaveOfSilence(bot)
@@ -125,7 +133,7 @@ local function WaveOfSilence(bot)
 	return false
 end
 
-local function RangePush(bot)
+local function RangePush(bot, building)
 	local push = bot.ref:GetAbilityByName(SKILL_E)
 	if not push:IsTrained() or bot.mp_current < push:GetManaCost()
 		or not push:IsFullyCastable() or bot.ref:IsChanneling() or bot.ref:IsUsingAbility()
@@ -137,14 +145,26 @@ local function RangePush(bot)
 	return true
 end
 
-function Think()
-	UpdateBot(bot)
-	Thonk(bot, priority)
-
-	if FreezingArrow(bot)
-		or WaveOfSilence(bot)
-		or (bot.priority_name == "push" and RangePush(bot))
-	then
+local function CustomFight(bot, enemy)
+	if FreezingArrow(bot, enemy) then
 		return
 	end
+	generic_priority["fight"][2](bot, enemy)
+end
+
+local function CustomPush(bot, building)
+	if RangePush(bot, building) then
+		return
+	end
+	generic_priority["push"][2](bot, building)
+end
+
+priority["fight"][2] = CustomFight
+priority["push"][2] = CustomPush
+
+function Think()
+	UpdateBot(bot)
+
+	Thonk(bot, priority)
+	WaveOfSilence(bot)
 end
