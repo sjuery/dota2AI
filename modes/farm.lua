@@ -31,13 +31,14 @@ function FarmPriority(bot)
 
 	if #enemy_creeps ~= 0
 		and lowest_enemy_hp < bot.ref:GetEstimatedDamageToTarget(true, weakest_enemy_creep, bot.ref:GetAttackSpeed(), DAMAGE_TYPE_PHYSICAL) - 5
+		and bot.role ~= "support"
 	then
 		return 50, weakest_enemy_creep
 	elseif #allied_creeps ~= 0
 		and lowest_friendly_hp < bot.ref:GetEstimatedDamageToTarget(true, weakest_friendly_creep, bot.ref:GetAttackSpeed(), DAMAGE_TYPE_PHYSICAL) - 5
 	then
 		return 35, weakest_friendly_creep
-	elseif #enemy_creeps ~= 0 and #enemy_heroes == 0 then
+	elseif #enemy_creeps ~= 0 and #enemy_heroes == 0 and GetHeroLevel(bot.ref:GetPlayerID()) >= 4 then
 		return 30, enemy_creeps[1]
 	end
 
@@ -51,6 +52,16 @@ function Farm(bot, creep)
 	enemyfront = GetLaneFrontAmount(GetEnemyTeam(), bot.lane, false)
 	front = Min(front, enemyfront)
 	dest = GetLocationAlongLane(bot.lane, Min(1.0, front))
+
+	local enemy_towers = GetNearbyVisibleTowers(bot, 1200, true)
+	if #enemy_towers > 0 then
+		local dist = GetUnitToUnitDistance(bot.ref, enemy_towers[1])
+		if dist < 750 then
+			away_from_tower = Normalize(bot.location - enemy_towers[1]:GetLocation()) * (750 - dist)
+			bot.ref:Action_MoveToLocation(bot.location + away_from_tower)
+			return
+		end
+	end
 
 	if creep == nil then
 		bot.ref:Action_MoveToLocation(dest)

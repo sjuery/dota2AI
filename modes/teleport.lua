@@ -5,7 +5,10 @@ function TeleportPriority(bot)
 		return 0, nil
 	end
 	local slot = bot.ref:FindItemSlot("item_tpscroll")
-	local tp_scroll = bot.ref:GetItemInSlot(slot)
+	local tp_scroll = nil
+	if bot.ref:GetItemSlotType(slot) ~= ITEM_SLOT_TYPE_STASH then
+		tp_scroll = bot.ref:GetItemInSlot(slot)
+	end
 
 	if bot.name == "furion" then
 		tp = bot.ref:GetAbilityByName("furion_teleportation")
@@ -14,7 +17,7 @@ function TeleportPriority(bot)
 		end
 	end
 
-	if tp_scroll and bot.ref:HasModifier("modifier_teleporting") then
+	if bot.ref:HasModifier("modifier_teleporting") then
 		return 100, {nil, nil}
 	end
 
