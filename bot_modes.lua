@@ -17,6 +17,7 @@ generic_priority = {
 	["shop"] = {ShopPriority, Shop},
 	["push"] = {PushPriority, Push},
 	["fight"] = {FightPriority, Fight},
+	["gank"] = {GangPriority, Gank},
 	["rune"] = {RunePriority, Rune}
 }
 
