@@ -14,8 +14,8 @@ function RetreatPriority(bot)
 
 	if bot.retreat > GameTime() then
 		-- Stop retreat if we are safe and were able to heal
-		if #enemy_heroes == 0 and #enemy_creeps == 0 and (bot.retreat - GameTime()) > 20 and bot.hp_percent > 0.8 then
-			bot.retreat = 0
+		if #enemy_heroes == 0 and #enemy_creeps == 0 and #enemy_towers == 0 then
+			return 15, bot.retreat
 		end
 		return 55, bot.retreat
 	end
@@ -48,7 +48,7 @@ function RetreatPriority(bot)
 		and (#meatshield_creeps <= 2)
 		and GetUnitToUnitDistance(enemy_towers[1], bot.ref) < 950
 	then
-		return 60, DotaTime() + 5
+		return 60, DotaTime() + 1
 	end
 
 	if #enemy_heroes > #allied_heroes + 1 then

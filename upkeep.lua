@@ -202,11 +202,11 @@ function UpKeep(bot)
 	local items = GetItems(bot)
 	-- Sell old items
 	if DotaTime() > 800 and GetItemsCount(bot) > 6 and #sell_order > 0
-		and bot.ref:DistanceFromFountain() < SHOP_USE_DISTANCE
+		and (bot.ref:DistanceFromFountain() < SHOP_USE_DISTANCE
 		or GetUnitToLocationDistance(bot.ref, SIDE_SHOP_TOP) < SHOP_USE_DISTANCE
 		or GetUnitToLocationDistance(bot.ref, SIDE_SHOP_BOT) < SHOP_USE_DISTANCE
 		or GetUnitToLocationDistance(bot.ref, SECRET_SHOP_RADIANT) < SHOP_USE_DISTANCE
-		or GetUnitToLocationDistance(bot.ref, SECRET_SHOP_DIRE) < SHOP_USE_DISTANCE
+		or GetUnitToLocationDistance(bot.ref, SECRET_SHOP_DIRE) < SHOP_USE_DISTANCE)
 	then
 		if items[sell_order[1]] ~= nil then
 			bot.ref:ActionImmediate_SellItem(items[sell_order[1]])

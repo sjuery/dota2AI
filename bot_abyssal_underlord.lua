@@ -15,7 +15,7 @@ local buy_order = {
 	"item_boots",
 	"item_energy_booster",
 	-- Vanguard
-	"item_ring_of_regen",
+	"item_ring_of_health",
 	"item_vitality_booster",
 	-- Blade mail
 	"item_chainmail",
