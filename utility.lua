@@ -184,47 +184,6 @@ function Normalize(vec)
 	return vec / GetDistance(vec, Vector(0, 0))
 end
 
-function ShouldTrade(bot, target)
-	if (bot.hp_current / bot.total_damage) > TimeToLive(target) then
-		return 1
-	end
-	return 0
-end
-
-function TimeToLive(hero)
-	return target:GetHealth() / TotalDamage(hero)
-end
-
-function TotalDamage(hero)
-	local total_damage = 0
-	local enemy_creeps = hero:GetNearbyCreeps(500, true)
-	local enemy_towers = GetNearbyVisibleTowers(hero, 950, true)
-	local enemy_heroes = hero:GetNearbyHeroes(1600, true, BOT_MODE_NONE)
-
-	if enemy_creeps ~= nil then
-		for i = 1, #enemy_creeps do
-			if enemy_creeps[i]:GetAttackTarget() == hero then
-				total_damage = total_damage + enemy_creeps[i]:GetEstimatedDamageToTarget(true, hero, 100, DAMAGE_TYPE_ALL)
-			end
-		end
-	end
-	if enemy_towers ~= nil then
-		for i = 1, #enemy_towers do
-			if enemy_towers[i]:GetAttackTarget() == hero then
-				total_damage = total_damage + nemy_towers[i]:GetEstimatedDamageToTarget(true, hero, 100, DAMAGE_TYPE_ALL)
-			end
-		end
-	end
-	if enemy_heroes ~= nil then
-		for i = 1, #enemy_heroes do
-			if enemy_heroes[i]:GetAttackTarget() == hero then
-				total_damage = total_damage + enemy_heroes[i]:GetEstimatedDamageToTarget(true, hero, 100, DAMAGE_TYPE_ALL)
-			end
-		end
-	end
-	return total_damage / 100
-end
-
 function AttackUnit(bot, enemy)
 	-- Range info
 	local range = bot.ref:GetBoundingRadius() + bot.ref:GetAttackRange()
@@ -262,12 +221,12 @@ function AttackUnit(bot, enemy)
 				elseif enemy:IsHero() and enemy_range < range then
 					bot.ref:Action_MoveToLocation(bot.location + away * 10.0)
 				elseif bot.lane == mid and GetHeightLevel(bot.location) <= GetHeightLevel(enemy_pos) then
-					local search_range = range
+					local search_range = Min(range * 0.7, 500)
 					local best_height = GetHeightLevel(bot.location)
 					local best_pos = nil
 					for i = 0, 8 do
 						local angle = ((math.pi / 4.0) * i) + math.rad(bot.ref:GetFacing())
-						local search_pos = Normalize(Vector(math.cos(angle), math.sin(angle))) * search_range
+						local search_pos = enemy_pos + (Normalize(Vector(math.cos(angle), math.sin(angle))) * search_range)
 						local height = GetHeightLevel(search_pos)
 						if IsLocationPassable(search_pos) and height > best_height then
 							best_height = height
@@ -293,7 +252,7 @@ end
 function AttackBuilding(bot, building)
 	-- Range info
 	local range = bot.ref:GetBoundingRadius() + bot.ref:GetAttackRange()
-	local distance = GetUnitToUnitDistance(bot.ref, building) - building:GetBoundingRadius()
+	local distance = GetUnitToUnitDistance(bot.ref, building)
 
 	-- Basic attack info
 	local attack_last = bot.ref:GetLastAttackTime()
@@ -303,8 +262,10 @@ function AttackBuilding(bot, building)
 	local away = Normalize(RetreatLocation(bot) - bot.location)
 
 	if distance < range then
-		-- Use attack cooldown time to manuver
-		if attack_time + attack_last > GameTime() and distance < range - 10 then
+		-- Use attack cooldown time to manuver away from building if ranged
+		if attack_time + attack_last > GameTime() and distance < range - 10
+			and not IsMelee(bot.ref)
+		then
 			-- Stay away from building.
 			bot.ref:Action_MoveToLocation(bot.location + away * 5)
 		else
