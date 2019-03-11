@@ -84,15 +84,6 @@ end
 function WarCry(bot, enemy)
 end
 
-
-
-local function CustomFight(bot, enemies)
-
-	bot.ref:Action_AttackUnit(enemies, true)
-end
-
-priority["fight"] = CustomFight
-
 function Think()
 	UpdateBot(bot)
 	Thonk(bot, priority)

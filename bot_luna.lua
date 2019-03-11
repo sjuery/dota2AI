@@ -95,7 +95,7 @@ local function LucentBeam(bot, enemy)
 
 	local cast_range = lucent_beam:GetCastRange()
 
-	if enemy:GetHealth() <= enemy:GetMaxHealth() then
+	if GetUnitHealthPercentage(enemy) < 0.5 then
 		bot.ref:Action_UseAbilityOnEntity(lucent_beam, enemy)
 		return true
 	end

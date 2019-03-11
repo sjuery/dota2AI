@@ -42,6 +42,7 @@ function UpdateBot(bot)
 	bot.mp_current = bot.ref:GetMana()
 	bot.mp_percent = bot.mp_current / bot.mp_max
 	bot.location = bot.ref:GetLocation()
+	bot.range = bot.ref:GetBoundingRadius() + bot.ref:GetAttackRange()
 end
 
 function GetEnemyTeam()

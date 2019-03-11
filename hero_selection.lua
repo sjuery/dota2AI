@@ -6,7 +6,7 @@ local hero_names = {
 	"Theo St.George Walton"
 }
 
-local picked_pool = {};
+local picked_pool = {}
 
 local pick_pool = {
 	"npc_dota_hero_luna",
@@ -20,18 +20,18 @@ local pick_pool = {
 }
 
 local ban_pool = {
-	'npc_dota_hero_sniper',
-	'npc_dota_hero_treant',
-	'npc_dota_hero_tusk',
-	'npc_dota_hero_undying',
-	'npc_dota_hero_vengefulspirit',
-	'npc_dota_hero_venomancer',
-	'npc_dota_hero_warlock',
-	'npc_dota_hero_windrunner',
-	'npc_dota_hero_witch_doctor',
-	'npc_dota_hero_zuus',
-	'npc_dota_hero_sven',
-	'npc_dota_hero_slark'
+	"npc_dota_hero_sniper",
+	"npc_dota_hero_treant",
+	"npc_dota_hero_tusk",
+	"npc_dota_hero_undying",
+	"npc_dota_hero_vengefulspirit",
+	"npc_dota_hero_venomancer",
+	"npc_dota_hero_warlock",
+	"npc_dota_hero_windrunner",
+	"npc_dota_hero_witch_doctor",
+	"npc_dota_hero_zuus",
+	"npc_dota_hero_sven",
+	"npc_dota_hero_slark"
 }
 
 function Think()
@@ -70,7 +70,6 @@ function PickHero()
 	if not IsPlayerBot(GetCMCaptain()) or not IsPlayerInHeroSelectionControl(GetCMCaptain()) then
 		return
 	end
-
 	while (IsCMPickedHero(GetTeam(), pick_pool[1]) or IsCMPickedHero(GetOpposingTeam(), pick_pool[1]) or IsCMBannedHero(pick_pool[1])) do
 		table.remove(pick_pool, 1)
 	end
@@ -83,11 +82,11 @@ function SelectHeroes()
 
 	if (Bots == TEAM_RADIANT) then
 		for pID = 2, 6  do
-			SelectHero(pID, ListPickedHeroes[pID-1])
+			SelectHero(pID, picked_pool[pID - 1])
 		end
 	elseif (Bots == TEAM_DIRE) then
 		for pID = 7, 11 do
-			SelectHero(pID, ListPickedHeroes[pID-6])
+			SelectHero(pID, picked_pool[pID - 6])
 		end
 	end
 end
