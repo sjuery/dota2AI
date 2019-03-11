@@ -83,11 +83,11 @@ function SelectHeroes()
 
 	if (Bots == TEAM_RADIANT) then
 		for pID = 2, 6  do
-			SelectHero(pID, ListPickedHeroes[pID-1])
+			SelectHero(pID, picked_pool[pID-1])
 		end
 	elseif (Bots == TEAM_DIRE) then
 		for pID = 7, 11 do
-			SelectHero(pID, ListPickedHeroes[pID-6])
+			SelectHero(pID, picked_pool[pID-6])
 		end
 	end
 end
