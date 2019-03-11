@@ -15,7 +15,7 @@ local buy_order = {
 	"item_boots",
 	"item_energy_booster",
 	-- Vanguard
-	"item_ring_of_regen",
+	"item_ring_of_health",
 	"item_vitality_booster",
 	-- Blade mail
 	"item_chainmail",
@@ -67,9 +67,9 @@ local function FireStorm(bot)
 	end
 
 	local aoe_heroes = bot.ref:FindAoELocation(true, true, bot.ref:GetLocation(),
-		fire_storm:GetCastRange(), 400, fire_storm:GetSpecialValueFloat("delay_plus_castpoint_tooltip"), 0)
+		fire_storm:GetCastRange(), 400, fire_storm:GetSpecialValueFloat("delay_plus_castpoint_tooltip") + 0.5, 0)
 	local aoe_minions = bot.ref:FindAoELocation(true, false, bot.ref:GetLocation(),
-		fire_storm:GetCastRange(), 400, fire_storm:GetSpecialValueFloat("delay_plus_castpoint_tooltip"), 0)
+		fire_storm:GetCastRange(), 400, fire_storm:GetSpecialValueFloat("delay_plus_castpoint_tooltip") + 0.5, 0)
 
 	if aoe_heroes.count >= 1 and aoe_minions.count > 2 then
 		bot.ref:Action_UseAbilityOnLocation(fire_storm, aoe_heroes.targetloc)

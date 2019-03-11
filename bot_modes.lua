@@ -31,7 +31,7 @@ function Thonk(bot, priority)
 	local priority_name
 
 	for name, thonkage in pairs(priority) do
-		local priority, value = unpack(thonkage[1](bot))
+		local priority, value = thonkage[1](bot)
 		if priority > priority_best then
 			priority_best = priority
 			priority_value = value
@@ -40,10 +40,15 @@ function Thonk(bot, priority)
 		end
 	end
 	if priority_name ~= bot.priority_name then
-		print(bot.name .. ": " .. priority_name)
+		local old = bot.priority_name or "start"
+		local old_priority = bot.priority or 0
+		print(
+			bot.name .. ": " .. old .. "(" .. old_priority ..
+			") -> " .. priority_name .. "(" .. priority_best .. ")"
+		)
 	end
 	priority_mode(bot, priority_value)
 	bot.priority_name = priority_name
-	bot.priority = priority_value
+	bot.priority = priority_best
 	UpKeep(bot)
 end

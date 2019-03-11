@@ -62,7 +62,8 @@ local bot = {
 	["retreat"] = 0,
 	["buy_order"] = buy_order,
 	["sell_order"] = {},
-	["ability_order"] = ability_order
+	["ability_order"] = ability_order,
+	["role"] = "support"
 }
 
 table.insert(g, bot)
@@ -73,9 +74,7 @@ local function Purification(bot)
 	local lowest_health = 10000000
 	local lowest_ally = nil
 
-	if bot.ref:IsChanneling() or bot.ref:IsUsingAbility() or purification:GetManaCost() >= bot.mp_current
-		or #allied_heroes == 0 or not purification:IsFullyCastable()
-	then
+	if not CanCast(bot, purification) or #allied_heroes == 0 then
 		return false
 	end
 
@@ -92,10 +91,12 @@ local function Purification(bot)
 
 	if lowest_ally == nil then
 		bot.ref:Action_UseAbilityOnEntity(purification, bot.ref)
+		return true
 	end
 
 	if GetUnitToUnitDistance(bot.ref, lowest_ally) >= 400 then
 		bot.ref:Action_MoveToLocation(lowest_ally:GetLocation())
+		return true
 	end
 
 	bot.ref:Action_UseAbilityOnEntity(purification, lowest_ally)
@@ -108,9 +109,7 @@ local function Grace(bot)
 	local lowest_health = 10000000
 	local lowest_ally = nil
 
-	if not grace:IsTrained() or bot.ref:IsChanneling() or bot.ref:IsUsingAbility() or grace:GetManaCost() >= bot.mp_current
-		or #allied_heroes == 0 or not grace:IsFullyCastable()
-	then
+	if not grace:IsTrained() or not CanCast(bot, grace) or #allied_heroes == 0 then
 		return false
 	end
 
@@ -127,10 +126,12 @@ local function Grace(bot)
 
 	if lowest_ally == nil then
 		bot.ref:Action_UseAbilityOnEntity(grace, bot.ref)
+		return true
 	end
 
 	if GetUnitToUnitDistance(bot.ref, lowest_ally) >= 400 then
 		bot.ref:Action_MoveToLocation(lowest_ally:GetLocation())
+		return true
 	end
 
 	bot.ref:Action_UseAbilityOnEntity(grace, lowest_ally)

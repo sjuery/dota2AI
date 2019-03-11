@@ -25,9 +25,7 @@ function UseItems(bot)
 
 	-- Use blade mail
 	local blade_mail = items["item_blade_mail"]
-	if blade_mail ~= nil and blade_mail:GetManaCost() <= bot.mp_current and blade_mail:IsFullyCastable()
-		and bot.ref:WasRecentlyDamagedByAnyHero(0.2)
-	then
+	if blade_mail ~= nil and CanCast(bot, blade_mail) and bot.ref:WasRecentlyDamagedByAnyHero(0.2) then
 		print("Using blade mail..")
 		bot.ref:Action_UseAbility(blade_mail)
 		return
@@ -44,16 +42,21 @@ function UseItems(bot)
 
 	-- Use moonshard to gain buff if we have no slots
 	local moonshard = items["item_moon_shard"]
-	if moonshard ~= nil and moonshard:IsFullyCastable()
-		and GetItemsCount(bot) > 6
-	then
+	if moonshard ~= nil and moonshard:IsFullyCastable() and GetItemsCount(bot) > 6 then
 		bot.ref:Action_UseAbility(moonshard)
 	end
 
 	-- Use manta style if fighting
 	local manta_style = items["item_manta"]
-	if manta_style ~= nil and bot.priority_name == "fight" and manta_style:GetManaCost() <= bot.mp_current and manta_style:IsFullyCastable() then
+	if manta_style ~= nil and CanCast(bot, manta_style) and bot.priority_name == "fight" then
+		print("Using manta style")
 		bot.ref:Action_UseAbility(manta_style)
+	end
+
+	local satanic = items["item_satanic"]
+	if satanic ~= nil and CanCast(bot, satanic) and (bot.hp_percent < 0.8 or bot.priority_name == "fight") then
+		print("Using satanic")
+		bot.ref:Action_UseAbility(satanic)
 	end
 
 	local power_treads = items["item_power_treads"]
@@ -123,7 +126,7 @@ function UpKeep(bot)
 		then
 			local buy_res = bot.ref:ActionImmediate_PurchaseItem(item)
 			if buy_res == PURCHASE_ITEM_SUCCESS then
-				print("Buying: " .. item)
+				print(bot.name .. " bought: " .. item)
 				table.remove(buy_order, 1)
 			end
 			return
@@ -133,9 +136,10 @@ function UpKeep(bot)
 	-- Add TP scrolls to buy order if needed
 	local slot = bot.ref:FindItemSlot("item_tpscroll")
 	local tp_scroll = bot.ref:GetItemInSlot(slot)
-	if not tp_scroll then
+	if not tp_scroll and (DotaTime() - (bot.last_tp_buy_time or 0)) > 120 then
 		if bot.buy_order and bot.buy_order[1] ~= "item_tpscroll" then
 			table.insert(bot.buy_order, 1, "item_tpscroll")
+			bot.last_tp_buy_time = DotaTime()
 		end
 	end
 
@@ -197,18 +201,18 @@ function UpKeep(bot)
 
 	local items = GetItems(bot)
 	-- Sell old items
-	if DotaTime() > 800 and empty_slot == nil and #sell_order > 0
-		and bot.ref:DistanceFromFountain() < SHOP_USE_DISTANCE
+	if DotaTime() > 800 and GetItemsCount(bot) > 6 and #sell_order > 0
+		and (bot.ref:DistanceFromFountain() < SHOP_USE_DISTANCE
 		or GetUnitToLocationDistance(bot.ref, SIDE_SHOP_TOP) < SHOP_USE_DISTANCE
 		or GetUnitToLocationDistance(bot.ref, SIDE_SHOP_BOT) < SHOP_USE_DISTANCE
 		or GetUnitToLocationDistance(bot.ref, SECRET_SHOP_RADIANT) < SHOP_USE_DISTANCE
-		or GetUnitToLocationDistance(bot.ref, SECRET_SHOP_DIRE) < SHOP_USE_DISTANCE
+		or GetUnitToLocationDistance(bot.ref, SECRET_SHOP_DIRE) < SHOP_USE_DISTANCE)
 	then
 		if items[sell_order[1]] ~= nil then
 			bot.ref:ActionImmediate_SellItem(items[sell_order[1]])
+			table.remove(sell_order, 1)
 			return
 		end
-		table.remove(sell_order, 1)
 	end
 
 	UseItems(bot)

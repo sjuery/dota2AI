@@ -36,12 +36,13 @@ function UpdateBot(bot)
     name = bot.ref:GetUnitName()
 	bot.name = string.sub(name, 15, string.len(name))
 	bot.hp_max = bot.ref:GetMaxHealth()
-	bot.hp_current =  bot.ref:GetHealth()
+	bot.hp_current = bot.ref:GetHealth()
 	bot.hp_percent = bot.hp_current / bot.hp_max
 	bot.mp_max = bot.ref:GetMaxMana()
 	bot.mp_current = bot.ref:GetMana()
 	bot.mp_percent = bot.mp_current / bot.mp_max
 	bot.location = bot.ref:GetLocation()
+	bot.range = bot.ref:GetBoundingRadius() + bot.ref:GetAttackRange()
 end
 
 function GetEnemyTeam()
@@ -63,15 +64,27 @@ function GetItems(bot)
 	return items
 end
 
+function GetItem(bot, name)
+	local slot = bot.ref:FindItemSlot(name)
+	return bot.ref:GetItemInSlot(slot)
+end
+
 function GetItemsCount(bot)
 	local count = 0
 	for i = 0, 5 do
 		local item = bot.ref:GetItemInSlot(i)
-		if (item ~= nil) then
+		if item ~= nil then
 			count = count + 1
 		end
 	end
 	return count
+end
+
+function CanCast(bot, ability)
+	if bot.ref:IsChanneling() or bot.ref:IsUsingAbility() or not ability:IsOwnersManaEnough() or not ability:IsFullyCastable() then
+		return false
+	end
+	return true
 end
 
 function GetStartingLane(lane)
@@ -128,26 +141,26 @@ function GetUnitHealthPercentage(unit)
 	return unit:GetHealth() / unit:GetMaxHealth()
 end
 
-function GetNearbyVisibleTowers(bot, radius, enemy)
-	local visible_towers = {}
-	local towers = bot.ref:GetNearbyTowers(1600, enemy)
-	for i = 1, #towers do
-		if towers[i]:GetHealth() > 0 then
-			table.insert(visible_towers, towers[i])
+local function FilterAlive(units)
+	local alive = {}
+	for i = 1, #units do
+		if units[i]:GetHealth() > 0 then
+			table.insert(alive, units[i])
 		end
 	end
-	return visible_towers
+	return alive
+end
+
+function GetNearbyVisibleTowers(bot, radius, enemy)
+	return FilterAlive(bot.ref:GetNearbyTowers(radius, enemy))
 end
 
 function GetNearbyVisibleBarracks(bot, radius, enemy)
-	local visible_barracks = {}
-	local barracks = bot.ref:GetNearbyBarracks(radius, enemy)
-	for i = 1, #barracks do
-		if barracks[i]:GetHealth() > 0 then
-			table.insert(visible_barracks, barracks[i])
-		end
-	end
-	return visible_barracks
+	return FilterAlive(bot.ref:GetNearbyBarracks(radius, enemy))
+end
+
+function GetNearbyVisibleShrines(bot, radius)
+	return FilterAlive(bot.ref:GetNearbyShrines(radius, enemy))
 end
 
 function IsMelee(unit)
@@ -164,7 +177,7 @@ function IsImmune(unit)
 end
 
 function GetDirectionVector(unit)
-	local angle = math.rad(GetFacing())
+	local angle = math.rad(unit:GetFacing())
 	return Vector(math.cos(angle), math.sin(angle))
 end
 
@@ -172,50 +185,10 @@ function Normalize(vec)
 	return vec / GetDistance(vec, Vector(0, 0))
 end
 
-function ShouldTrade(bot, target)
-	if (bot.hp_current / bot.total_damage) > TimeToLive(target) then
-		return 1
-	end
-	return 0
-end
-
-function TimeToLive(hero)
-	return target:GetHealth() / TotalDamage(hero)
-end
-
-function TotalDamage(hero)
-	local total_damage = 0
-	local enemy_creeps = hero:GetNearbyCreeps(500, true)
-	local enemy_towers = GetNearbyVisibleTowers(hero, 950, true)
-	local enemy_heroes = hero:GetNearbyHeroes(1600, true, BOT_MODE_NONE)
-
-	if enemy_creeps ~= nil then
-		for i = 1, #enemy_creeps do
-			if enemy_creeps[i]:GetAttackTarget() == hero then
-				total_damage = total_damage + enemy_creeps[i]:GetEstimatedDamageToTarget(true, hero, 100, DAMAGE_TYPE_ALL)
-			end
-		end
-	end
-	if enemy_towers ~= nil then
-		for i = 1, #enemy_towers do
-			if enemy_towers[i]:GetAttackTarget() == hero then
-				total_damage = total_damage + nemy_towers[i]:GetEstimatedDamageToTarget(true, hero, 100, DAMAGE_TYPE_ALL)
-			end
-		end
-	end
-	if enemy_heroes ~= nil then
-		for i = 1, #enemy_heroes do
-			if enemy_heroes[i]:GetAttackTarget() == hero then
-				total_damage = total_damage + enemy_heroes[i]:GetEstimatedDamageToTarget(true, hero, 100, DAMAGE_TYPE_ALL)
-			end
-		end
-	end
-	return total_damage / 100
-end
-
 function AttackUnit(bot, enemy)
 	-- Range info
 	local range = bot.ref:GetBoundingRadius() + bot.ref:GetAttackRange()
+	local enemy_range = enemy:GetBoundingRadius() + enemy:GetAttackRange()
 	local distance = GetUnitToUnitDistance(bot.ref, enemy)
 
 	-- Basic attack info
@@ -228,24 +201,45 @@ function AttackUnit(bot, enemy)
 
 	if distance < range then
 		if IsMelee(bot.ref) then
-			-- Use attack cooldown time to manuver
+			-- Use attack cooldown time to maneuver
 			if attack_time + attack_last > GameTime() and distance > 50 then
 				bot.ref:Action_MoveToUnit(enemy)
 			else
 				bot.ref:Action_AttackUnit(enemy, true)
 			end
 		else
-			-- Use attack cooldown time to manuver
+			local attack_dist = range - 10
+			if enemy:IsHero() then
+				attack_dist = range * 0.7
+			end
+
+			-- Use attack cooldown time to maneuver
 			if attack_time + attack_last > GameTime() then
-				--if bot.lane == "mid" and GetHeightLevel(bot.location) < GetHeightLevel(enemy_pos) then
-				--	-- Move to high ground
-				--end
-				-- Move out of melee range if enemy is a melee hero
-				if IsMelee(enemy) and (enemy:GetBoundingRadius() + enemy:GetAttackRange()) * 1.3 > distance then
-					bot.ref:Action_MoveToLocation(bot.location + away * 20)
 				-- Move closer to enemy
-				elseif distance > range * 0.7 then
+				if distance > attack_dist then
 					bot.ref:Action_MoveToUnit(enemy)
+				-- Move out of range if we can
+				elseif enemy:IsHero() and enemy_range < range then
+					bot.ref:Action_MoveToLocation(bot.location + away * 10.0)
+				elseif bot.lane == mid and GetHeightLevel(bot.location) <= GetHeightLevel(enemy_pos) then
+					local search_range = Min(range * 0.7, 500)
+					local best_height = GetHeightLevel(bot.location)
+					local best_pos = nil
+					for i = 0, 8 do
+						local angle = ((math.pi / 4.0) * i) + math.rad(bot.ref:GetFacing())
+						local search_pos = enemy_pos + (Normalize(Vector(math.cos(angle), math.sin(angle))) * search_range)
+						local height = GetHeightLevel(search_pos)
+						if IsLocationPassable(search_pos) and height > best_height then
+							best_height = height
+							best_pos = search_pos
+						end
+					end
+					if best_height > GetHeightLevel(bot.location) then
+						print(bot.name .. ": moving to high ground")
+						bot.ref:Action_MoveToLocation(best_pos)
+					else
+						print(bot.name .. ": no higher ground.. :(")
+					end
 				end
 			else
 				bot.ref:Action_AttackUnit(enemy, true)
@@ -253,6 +247,33 @@ function AttackUnit(bot, enemy)
 		end
 	else
 		bot.ref:Action_MoveToUnit(enemy)
+	end
+end
+
+function AttackBuilding(bot, building)
+	-- Range info
+	local range = bot.ref:GetBoundingRadius() + bot.ref:GetAttackRange()
+	local distance = GetUnitToUnitDistance(bot.ref, building)
+
+	-- Basic attack info
+	local attack_last = bot.ref:GetLastAttackTime()
+	local attack_time = bot.ref:GetSecondsPerAttack()
+	local attack_speed = bot.ref:GetAttackSpeed()
+
+	local away = Normalize(RetreatLocation(bot) - bot.location)
+
+	if distance < range then
+		-- Use attack cooldown time to manuver away from building if ranged
+		if attack_time + attack_last > GameTime() and distance < range - 10
+			and not IsMelee(bot.ref)
+		then
+			-- Stay away from building.
+			bot.ref:Action_MoveToLocation(bot.location + away * 5)
+		else
+			bot.ref:Action_AttackUnit(building, true)
+		end
+	else
+		bot.ref:Action_MoveToUnit(building)
 	end
 end
 

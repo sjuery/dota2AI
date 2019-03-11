@@ -71,8 +71,7 @@ table.insert(g, bot)
 local function SpawnTrees(bot, enemy)
 	local summon_trees = bot.ref:GetAbilityByName(SKILL_Q)
 
-	if not summon_trees:IsTrained() or bot.mp_current < summon_trees:GetManaCost()
-		or not summon_trees:IsFullyCastable() or bot.ref:IsChanneling() or bot.ref:IsUsingAbility() then
+	if not summon_trees:IsTrained() or not CanCast(bot, summon_trees) then
 		return false
 	end
 
@@ -87,11 +86,10 @@ local function SpawnTrees(bot, enemy)
 end
 
 local function SummonTreants(bot)
-	local trees = bot.ref:GetNearbyTrees(1000)
+	local trees = bot.ref:GetNearbyTrees(1200)
 	local summon_treants = bot.ref:GetAbilityByName(SKILL_E)
 
-	if not summon_treants:IsTrained() or #trees == 0 or bot.mp_current < summon_treants:GetManaCost()
-		or not summon_treants:IsFullyCastable() or bot.ref:IsChanneling() or bot.ref:IsUsingAbility() then
+	if not summon_treants:IsTrained() or #trees == 0 or not CanCast(bot, summon_treants) then
 		return false
 	end
 
@@ -137,8 +135,7 @@ end
 local function NaturesWrath(bot, enemy)
 	local natures_wrath = bot.ref:GetAbilityByName(SKILL_R)
 
-	if not natures_wrath:IsTrained() or bot.mp_current < natures_wrath:GetManaCost()
-		or not natures_wrath:IsFullyCastable() or bot.ref:IsChanneling() or bot.ref:IsUsingAbility() then
+	if not natures_wrath:IsTrained() or not CanCast(bot, natures_wrath) then
 		return false
 	end
 
@@ -150,11 +147,24 @@ local function NaturesWrath(bot, enemy)
 	return false
 end
 
-local function CustomFight(bot, enemy)
-	if SpawnTrees(bot, enemy) or SummonTreants(bot) or NaturesWrath(bot, enemy) then
+local function UseOrchid(bot, enemy)
+	local orchid = GetItem(bot, "item_orchid")
+	if not orchid or not CanCast(bot, orchid) or GetUnitToUnitDistance(bot.ref, enemy) > 600 then
+		return false
+	end
+
+	if GetUnitHealthPercentage(enemy) < 0.6 or enemy:IsChanneling() or enemy:IsCastingAbility() then
+		bot.ref:Action_UseAbilityOnEntity(orchid, enemy)
+		return true
+	end
+	return false
+end
+
+local function CustomFight(bot, enemies)
+	if UseOrchid(bot, enemies) or NaturesWrath(bot, enemies) or SpawnTrees(bot, enemies) or SummonTreants(bot) then
 		return
 	end
-	AttackUnit(bot, enemy)
+	AttackUnit(bot, enemies)
 end
 
 priority["fight"][2] = CustomFight
@@ -164,22 +174,20 @@ function Think()
 	local enemy_heroes = bot.ref:GetNearbyHeroes(1600, true, BOT_MODE_NONE)
 	UpdateBot(bot)
 	Thonk(bot, priority)
-	if bot.mp_percent > 0.5 and #enemy_creeps ~= 0 and #enemy_heroes ~= 0 then
-		SummonTreants(bot)
+	if bot.mp_percent > 0.5 and #enemy_creeps ~= 0 and #enemy_heroes ~= 0 and SummonTreants(bot) then
+		return
 	end
 end
 
 -- Treants
 
-local treant = {
-	["lane"] = GetStartingLane(1)
-}
+local treant = {}
 
 local function TreantFarmPriority(bot)
 	local enemy_creeps = bot.ref:GetNearbyLaneCreeps(1600, true)
 
 	if #enemy_creeps == 0 then
-		return {5, nil}
+		return 5, nil
 	end
 
 	local target = enemy_creeps[1]
@@ -192,14 +200,14 @@ local function TreantFarmPriority(bot)
 		end
 	end
 
-	return {40, target}
+	return 40, target
 end
 
 local function TreantFightPriority(bot)
 	local enemy_heroes = bot.ref:GetNearbyHeroes(1600, true, BOT_MODE_NONE)
 
 	if #enemy_heroes == 0 then
-		return {0, nil}
+		return 0, nil
 	end
 
 	local target = enemy_heroes[1]
@@ -216,16 +224,16 @@ local function TreantFightPriority(bot)
 		end
 	end
 
-	return {60, target}
+	return 60, target
 end
 
 local function FollowPriority(bot)
 	local allied_heroes = bot.ref:GetNearbyHeroes(1600, false, BOT_MODE_NONE)
 	if #allied_heroes == 0 then
-		return {0, nil}
+		return 0, nil
 	end
 
-	return {10, allied_heroes[1]:GetLocation()}
+	return 10, allied_heroes[1]:GetLocation()
 end
 
 local function Follow(bot, target)
@@ -243,6 +251,7 @@ treant_priority["farm"][1] = TreantFarmPriority
 treant_priority["fight"][1] = TreantFightPriority
 
 function MinionThink(treant_unit)
+	treant.lane = bot.lane
 	treant.ref = treant_unit
 	UpdateBot(treant)
 	Thonk(treant, treant_priority)
