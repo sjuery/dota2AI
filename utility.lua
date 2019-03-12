@@ -43,13 +43,7 @@ function UpdateBot(bot)
 	bot.mp_percent = bot.mp_current / bot.mp_max
 	bot.location = bot.ref:GetLocation()
 	bot.range = bot.ref:GetBoundingRadius() + bot.ref:GetAttackRange()
-end
-
-function GetEnemyTeam()
-	if GetTeam() == TEAM_RADIANT then
-		return TEAM_DIRE
-	end
-	return TEAM_RADIANT
+	bot.level = GetHeroLevel(bot.ref:GetPlayerID())
 end
 
 -- Returns table of items indexed on item name
@@ -221,7 +215,7 @@ function AttackUnit(bot, enemy)
 				-- Move out of range if we can
 				elseif enemy:IsHero() and enemy_range < range then
 					bot.ref:Action_MoveToLocation(bot.location + away * 10.0)
-				elseif bot.lane == mid and GetHeightLevel(bot.location) <= GetHeightLevel(enemy_pos) then
+				elseif bot.lane == "mid" and GetHeightLevel(bot.location) <= GetHeightLevel(enemy_pos) then
 					local search_range = Min(range * 0.7, 500)
 					local best_height = GetHeightLevel(bot.location)
 					local best_pos = nil
@@ -253,7 +247,7 @@ end
 function AttackBuilding(bot, building)
 	-- Range info
 	local range = bot.ref:GetBoundingRadius() + bot.ref:GetAttackRange()
-	local distance = GetUnitToUnitDistance(bot.ref, building)
+	local distance = GetUnitToUnitDistance(bot.ref, building) - building:GetBoundingRadius()
 
 	-- Basic attack info
 	local attack_last = bot.ref:GetLastAttackTime()
@@ -294,7 +288,7 @@ local function GetAttackingTower(bot)
 	}
 
 	local attacking_tower = nil
-	local other_team = GetEnemyTeam()
+	local other_team = GetOpposingTeam()
 
     for i = 1, #towers do
 		if GetTowerAttackTarget(other_team, towers[i]) == bot.ref then
@@ -311,7 +305,7 @@ function DeAggroTower(bot)
 		bot.de_aggro = DotaTime() - 1.0
 	end
 
-	if DotaTime() < bot.de_aggro + 1.0 then
+	if DotaTime() < bot.de_aggro + 1.0  or bot.ref:IsCreep() then
 		return false
 	end
 
@@ -319,6 +313,7 @@ function DeAggroTower(bot)
 	if attacking_tower == nil then
 		return false
 	end
+	print(bot.name .. ": tower is attacking me!")
 
 	local allied_creeps = bot.ref:GetNearbyLaneCreeps(1600, false)
 	local other_creeps = bot.ref:GetNearbyCreeps(1600, false)
@@ -328,24 +323,27 @@ function DeAggroTower(bot)
 
 	local range = bot.ref:GetBoundingRadius() + bot.ref:GetAttackRange()
 
-	local meatshield_creeps = {}
-	if #allied_creeps > 0 and #enemy_towers > 0 then
+	local tower_dist = GetUnitToUnitDistance(bot.ref, attacking_tower)
+
+	local de_aggro_target = nil
+	if #allied_creeps > 0 then
 		-- Search for nearby allied creeps to take tower hits
 		for i = 1, #allied_creeps do
-			for i = 1, #enemy_towers do
-				if GetUnitToUnitDistance(allied_creeps[i], enemy_towers[i]) < 900
-					and GetUnitToUnitDistance(bot.ref, allied_creeps[i]) < range
-				then
-					table.insert(meatshield_creeps, allied_creeps[i])
-				end
+			local creep_tower_dist = GetUnitToUnitDistance(allied_creeps[i], attacking_tower)
+			if creep_tower_dist < 900
+				and GetUnitToUnitDistance(bot.ref, allied_creeps[i]) < range
+				and creep_tower_dist < tower_dist
+			then
+				de_aggro_target = allied_creeps[i]
+				break
 			end
 		end
 	end
 
-	if #meatshield_creeps == 0 then
+	if de_aggro_target == nil then
 		return false
 	end
 
-	AttackUnit(bot, meatshield_creeps[1], true)
+	bot.ref:Action_AttackUnit(de_aggro_target, true)
 	return true
 end

@@ -1,12 +1,12 @@
 require(GetScriptDirectory() .. "../utility")
 
 function PushPriority(bot)
-	local enemy_towers = GetNearbyVisibleTowers(bot, 1000, true)
+	local enemy_towers = GetNearbyVisibleTowers(bot, 1600, true)
 	local allied_creeps = bot.ref:GetNearbyLaneCreeps(800, false)
 	local enemy_creeps = bot.ref:GetNearbyLaneCreeps(1600, true)
 	local enemy_barracks = GetNearbyVisibleBarracks(bot, 1600, true)
-	local enemy_heroes = bot.ref:GetNearbyHeroes(1400, true, BOT_MODE_NONE)
-	local base = GetAncient(GetEnemyTeam())
+	local enemy_heroes = bot.ref:GetNearbyHeroes(1600, true, BOT_MODE_NONE)
+	local base = GetAncient(GetOpposingTeam())
 
 	if (#enemy_towers == 0 and #enemy_barracks == 0)
 		or (#enemy_towers > 0 and enemy_towers[1]:HasModifier("modifier_fountain_glyph"))
@@ -42,5 +42,8 @@ function PushPriority(bot)
 end
 
 function Push(bot, enemy_building)
+	if DeAggroTower(bot) then
+		return
+	end
 	AttackBuilding(bot, enemy_building)
 end

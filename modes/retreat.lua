@@ -12,12 +12,20 @@ function RetreatPriority(bot)
 	local allied_heroes = bot.ref:GetNearbyHeroes(1400, true, BOT_MODE_NONE)
 	local enemy_heroes = bot.ref:GetNearbyHeroes(1400, true, BOT_MODE_NONE)
 
+	if bot.ref:DistanceFromFountain() > 6000
+		and (bot.hp_percent > 0.65 and bot.mp_percent > 0.6)
+		or (bot.hp_percent > 0.8 and bot.mp_percent > 0.36)
+	then
+		bot.retreat = GameTime()
+		return 0, bot.retreat
+	end
+
 	if bot.retreat > GameTime() then
 		-- Stop retreat if we are safe and were able to heal
 		if #enemy_heroes == 0 and #enemy_creeps == 0 and #enemy_towers == 0 then
 			return 15, bot.retreat
 		end
-		return 55, bot.retreat
+		return 100, bot.retreat
 	end
 
 	local other_creeps = bot.ref:GetNearbyCreeps(1600, false)
@@ -113,9 +121,7 @@ end
 -- 	return 0.7
 -- end
 
--- if bot.hp_percent < 0.25 and bot:GetHealthRegen() < 7.9 or 
--- 	(bot.mp_percent < 0.07 and bot.priority_name == "farming" and
--- 	bot:GetManaRegen() < 6.0
+-- if bot.hp_percent < 0.25 and bot:GetHealthRegen() < 7.9
 -- then
 -- 	bot.IsRetreating = true
 -- 	return 0.7

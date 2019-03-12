@@ -1,74 +1,16 @@
 require(GetScriptDirectory() .. "../utility")
 
--- function FightPriority(bot)
--- 	local enemy_heroes = bot.ref:GetNearbyHeroes(1000, true, BOT_MODE_NONE)
--- 	local heroes = bot.ref:GetNearbyHeroes(600, false, BOT_MODE_NONE)
-
--- 	local targets = {}
--- 	if #enemy_heroes > 0 then
--- 		local towers = GetNearbyVisibleTowers(bot, 1600, true)
-
--- 		-- Search for nearby enemy heroes (Not under enemy towers)
--- 		for i = 1, #enemy_heroes do
--- 			local pos = enemy_heroes[i]:GetLocation()
--- 			if IsLocationVisible(pos) or IsLocationPassable(pos) then
--- 				for i = 1, #towers do
--- 					if GetDistance(pos, towers[i]:GetLocation()) > 900
--- 						or (bot.ref:GetEstimatedDamageToTarget(true, bot.ref, 4, DAMAGE_TYPE_PHYSICAL) > bot.hp_current)
--- 					then
--- 						table.insert(targets, enemy_heroes[i])
--- 					end
--- 				end
--- 				if #towers == 0 then
--- 					table.insert(targets, enemy_heroes[i])
--- 				end
--- 			end
--- 		end
--- 	end
-
--- 	if #targets == 0 then
--- 		return 0, nil
--- 	end
-
--- 	local target = targets[1]
-
--- 	-- Find weakest target in range
--- 	for i = 1, #targets do
--- 		if GetUnitToUnitDistance(bot.ref, targets[i]) < bot.ref:GetAttackRange()
--- 			and targets[i]:GetHealth() < target:GetHealth()
--- 		then
--- 			target = targets[i]
--- 		end
--- 	end
-
--- 	local target_hp_percent = GetUnitHealthPercentage(target)
--- 	if target_hp_percent < 0.2 then
--- 		return 60, target
--- 	elseif #heroes + 1 >= #enemy_heroes
--- 		and target_hp_percent < 0.33
--- 		and bot.hp_current >= target_hp_percent * 1.2
--- 	then
--- 		return 55, target
--- 	elseif #heroes + 1 == #enemy_heroes and target_hp_percent < bot.hp_percent then
--- 		return 30, target
--- 	elseif #heroes + 1 > #enemy_heroes then
--- 		return 35, target
--- 	end
-
--- 	return 5, target
--- end
-
 local enemy_modifiers = {
-	["modifier_flask_healing"] = 15,
-	["modifier_clarity_potion"] = 15,
+	["modifier_flask_healing"] = 25,
+	["modifier_clarity_potion"] = 25,
 	["modifier_stunned"] = 15,
-	["modifier_item_blade_mail_reflect"] = -40,
+	["modifier_item_blade_mail_reflect"] = -20,
 	["modifier_bashed"] = 5,
-	["modifier_rooted"] = 5,
+	["modifier_rooted"] = 10,
 	["modifier_silence"] = 10,
-	["modifier_tower_armor_bonus"] = -30,
-	["modifier_drow_ranger_frost_arrows_slow"] = 5,
-	["modifier_orchid_malevolence_debuff"] = 20
+	["modifier_tower_armor_bonus"] = -20,
+	["modifier_drow_ranger_frost_arrows_slow"] = 10,
+	["modifier_orchid_malevolence_debuff"] = 25
 }
 
 local ally_modifers = {
@@ -80,7 +22,9 @@ local ally_modifers = {
 	["modifier_item_blade_mail_reflect"] = 10,
 	["modifier_rune_doubledamage"] = 30,
 	["modifier_rune_arcane"] = 5,
-	["modifier_silence"] = -10
+	["modifier_silence"] = -10,
+	["modifier_manta_phase"] = 20,
+	["modifier_manta"] = 20
 }
 
 local function TargetValue(bot, enemy)
@@ -96,17 +40,24 @@ local function TargetValue(bot, enemy)
 		value = Clamp(value, -40, 40)
 	end
 
-	if GetUnitToUnitDistance(bot.ref, enemy) < bot.range then
+	if (GetUnitToUnitDistance(bot.ref, enemy) - enemy:GetBoundingRadius()) < bot.range then
 		value = value + 11
 	end
 
+	local enemy_level = GetHeroLevel(enemy:GetPlayerID())
+	if bot.level > enemy_level then
+		value = value + (bot.level - enemy_level) * 13
+	end
+
 	local hp = GetUnitHealthPercentage(enemy)
-	if hp < 0.75 then
-		value = value + 5
-	elseif hp < 0.5 then
-		value = value + 15
+	if hp < 0.1 then
+		value = value + 40
 	elseif hp < 0.33 then
+		value = value + 30
+	elseif hp < 0.5 then
 		value = value + 20
+	elseif hp < 0.75 then
+		value = value + 10
 	end
 
 	return value
@@ -131,16 +82,23 @@ function FightPriority(bot)
 			value = value + ally_modifers[modifiers[i]]
 		end
 	end
+	if bot.hp_percent < 0.33 then
+		value = value - 10
+	elseif bot.hp_percent < 0.5 then
+		value = value - 5
+	end
 	value = Clamp(value, -40, 40)
 
 	local targets = {}
 	for i = 1, #enemy_heroes do
-		table.insert(targets, {value + TargetValue(bot, enemy_heroes[i]), enemy_heroes[i]})
+		if #enemy_heroes[i] ~= nil then
+			table.insert(targets, {value + TargetValue(bot, enemy_heroes[i]), enemy_heroes[i]})
+		end
 	end
 	table.sort(targets, CompareTargets)
 
 	if #targets ~= 0 then
-		print(bot.name .. "best fight: " .. targets[1][1])
+		--print(bot.name .. "best_target: " .. targets[1][1])
 		return targets[1][1], targets[1][2]
 	end
 

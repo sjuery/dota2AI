@@ -124,6 +124,15 @@ local function SummonTreants(bot)
 		end
 	end
 
+	local summon_trees = bot.ref:GetAbilityByName(SKILL_Q)
+	if best_count < max_trees and summon_trees:IsTrained() and CanCast(bot, summon_trees) and
+		#bot.ref:GetNearbyHeroes(1600, true, BOT_MODE_NONE) == 0 and bot.mp_percent > 0.8
+	then
+		local summon_trees = bot.ref:GetAbilityByName(SKILL_Q)
+		bot.ref:Action_UseAbilityOnLocation(summon_trees, bot.location + RandomVector(400))
+		return true
+	end
+
 	if best_count >= 2 then
 		bot.ref:Action_UseAbilityOnLocation(summon_treants, best_tree)
 		return true
@@ -135,11 +144,11 @@ end
 local function NaturesWrath(bot, enemy)
 	local natures_wrath = bot.ref:GetAbilityByName(SKILL_R)
 
-	if not natures_wrath:IsTrained() or not CanCast(bot, natures_wrath) then
+	if not natures_wrath:IsTrained() or not CanCast(bot, natures_wrath) or GetUnitToUnitDistance(bot.ref, enemy) > 700 then
 		return false
 	end
 
-	if GetUnitHealthPercentage(enemy) < 0.7 and GetUnitToUnitDistance(bot.ref, enemy) < 700 then
+	if GetUnitHealthPercentage(enemy) < 0.7 then
 		bot.ref:Action_UseAbilityOnLocation(natures_wrath, enemy:GetLocation())
 		return true
 	end
@@ -153,10 +162,11 @@ local function UseOrchid(bot, enemy)
 		return false
 	end
 
-	if GetUnitHealthPercentage(enemy) < 0.6 or enemy:IsChanneling() or enemy:IsCastingAbility() then
+	if GetUnitHealthPercentage(enemy) < 0.7 or enemy:IsChanneling() then
 		bot.ref:Action_UseAbilityOnEntity(orchid, enemy)
 		return true
 	end
+
 	return false
 end
 
@@ -174,7 +184,7 @@ function Think()
 	local enemy_heroes = bot.ref:GetNearbyHeroes(1600, true, BOT_MODE_NONE)
 	UpdateBot(bot)
 	Thonk(bot, priority)
-	if bot.mp_percent > 0.5 and #enemy_creeps ~= 0 and #enemy_heroes ~= 0 and SummonTreants(bot) then
+	if bot.mp_percent > 0.5 and (#enemy_creeps ~= 0 or #enemy_heroes ~= 0) and SummonTreants(bot) then
 		return
 	end
 end
@@ -190,41 +200,17 @@ local function TreantFarmPriority(bot)
 		return 5, nil
 	end
 
-	local target = enemy_creeps[1]
-	-- Find weakest target in range
-	for i = 1, #enemy_creeps do
-		if GetUnitToUnitDistance(bot.ref, enemy_creeps[i]) < 300
-			and enemy_creeps[i]:GetHealth() < target:GetHealth()
-		then
-			target = enemy_creeps[i]
-		end
-	end
-
-	return 40, target
+	return 21, enemy_creeps[i]
 end
 
 local function TreantFightPriority(bot)
-	local enemy_heroes = bot.ref:GetNearbyHeroes(1600, true, BOT_MODE_NONE)
+	local p, target = generic_priority["fight"][1](bot)
 
-	if #enemy_heroes == 0 then
-		return 0, nil
+	if p > 0 then
+		p = p + 20
 	end
 
-	local target = enemy_heroes[1]
-	-- Find weakest target in range
-	for i = 1, #enemy_heroes do
-		local distance = GetUnitToUnitDistance(bot.ref, enemy_heroes[i])
-		if enemy_heroes[i]:WasRecentlyDamagedByAnyHero(1.0) and distance < 500 then
-			target = enemy_heroes[i]
-			break
-		elseif distance < 300
-			and enemy_heroes[i]:GetHealth() < target:GetHealth()
-		then
-			target = enemy_heroes[i]
-		end
-	end
-
-	return 60, target
+	return p, target
 end
 
 local function FollowPriority(bot)

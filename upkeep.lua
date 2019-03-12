@@ -69,9 +69,10 @@ function UseItems(bot)
 		}
 		local tread_stat = power_stat[power_treads:GetPowerTreadsStat()]
 		if bot.ref:HasModifier("modifier_flask_healing") or bot.ref:HasModifier("modifier_filler_heal")
-			and tread_stat == ATTRIBUTE_STRENGTH
 		then
-			bot.ref:Action_UseAbility(power_treads)
+			if tread_stat == ATTRIBUTE_STRENGTH then
+				bot.ref:Action_UseAbility(power_treads)
+			end
 			return
 		else
 			local primary_attribute = bot.ref:GetPrimaryAttribute()
