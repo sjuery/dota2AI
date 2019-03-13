@@ -75,7 +75,12 @@ function GetItemsCount(bot)
 end
 
 function CanCast(bot, ability)
-	if bot.ref:IsChanneling() or bot.ref:IsUsingAbility() or not ability:IsOwnersManaEnough() or not ability:IsFullyCastable() then
+	if not ability:IsTrained()
+		or not ability:IsOwnersManaEnough()
+		or not ability:IsFullyCastable()
+		or bot.ref:IsChanneling()
+		or bot.ref:IsUsingAbility()
+	then
 		return false
 	end
 	return true
@@ -262,6 +267,7 @@ function AttackBuilding(bot, building)
 			and not IsMelee(bot.ref)
 		then
 			-- Stay away from building.
+			print("moving away from buildng.")
 			bot.ref:Action_MoveToLocation(bot.location + away * 5)
 		else
 			bot.ref:Action_AttackUnit(building, true)

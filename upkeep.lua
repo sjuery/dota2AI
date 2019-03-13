@@ -59,6 +59,13 @@ function UseItems(bot)
 		bot.ref:Action_UseAbility(satanic)
 	end
 
+	local crimson_guard = items["item_crimson_guard"]
+	if crimson_guard ~= nil and crimson_guard:IsFullyCastable() and bot.ref:WasRecentlyDamagedByAnyHero(0.2) then
+		print("Using crimson_guard..")
+		bot.ref:Action_UseAbility(crimson_guard)
+		return
+	end
+
 	local power_treads = items["item_power_treads"]
 
 	if power_treads ~= nil then

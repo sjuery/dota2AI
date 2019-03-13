@@ -24,10 +24,6 @@ local buy_order = {
 	"item_boots_of_elves",
 	"item_boots_of_elves",
 	"item_ogre_axe",
-	-- Blade mail
-	"item_chainmail",
-	"item_robe",
-	"item_broadsword",
 	-- Yasha
 	"item_boots_of_elves",
 	"item_blade_of_alacrity",
@@ -35,6 +31,10 @@ local buy_order = {
 	-- Manta Style
 	"item_ultimate_orb",
 	"item_recipe_manta",
+	-- Butterfly
+	"item_quarterstaff",
+	"item_talisman_of_evasion",
+	"item_eagle",
 	-- Moonshard
 	"item_hyperstone",
 	"item_hyperstone"
@@ -71,25 +71,11 @@ local bot = {
 
 table.insert(g, bot)
 
-local function SummonImage()
-	local summon_image = bot.ref:GetAbilityByName(SKILL_W)
-	if not summon_image:IsTrained() or bot.ref:IsChanneling() or bot.ref:IsUsingAbility() or summon_image:GetManaCost() >= bot.mp_current 
-		or not summon_image:IsFullyCastable()
-	then
-		return false
-	end
-
-	bot.ref:Action_UseAbility(summon_image)
-	return true
-end
-
 local function SummonReflection(bot)
 	local summon_reflection = bot.ref:GetAbilityByName(SKILL_Q)
 	local enemy_heroes = bot.ref:GetNearbyHeroes(900, true, BOT_MODE_NONE)
 
-	if not summon_reflection:IsTrained() or bot.ref:IsChanneling() or bot.ref:IsUsingAbility() or summon_reflection:GetManaCost() >= bot.mp_current
-		or #enemy_heroes >= 2 or not summon_reflection:IsFullyCastable()
-	then
+	if not CanCast(bot, summon_reflection) or #enemy_heroes < 2 then
 		return false
 	end
 
@@ -97,15 +83,23 @@ local function SummonReflection(bot)
 	return true
 end
 
-local function Metamorphosis(bot, enemy)
-	local metamorphosis = bot.ref:GetAbilityByName(SKILL_E)
-	if not metamorphosis:IsTrained() or bot.ref:IsChanneling() or bot.ref:IsUsingAbility() or metamorphosis:GetManaCost() >= bot.mp_current
-		or not metamorphosis:IsFullyCastable()
-	then
+local function SummonImage()
+	local summon_image = bot.ref:GetAbilityByName(SKILL_W)
+	if not CanCast(bot, summon_image) then
 		return false
 	end
 
-	if GetUnitHealthPercentage(enemy) < 0.5 then
+	bot.ref:Action_UseAbility(summon_image)
+	return true
+end
+
+local function Metamorphosis(bot, enemy)
+	local metamorphosis = bot.ref:GetAbilityByName(SKILL_E)
+	if not CanCast(bot, metamorphosis) then
+		return false
+	end
+
+	if enemy ~= nil and GetUnitHealthPercentage(enemy) < 0.5 then
 		bot.ref:Action_UseAbility(metamorphosis)
 		return true
 	end
@@ -113,11 +107,27 @@ local function Metamorphosis(bot, enemy)
 	return false
 end
 
+local function Sunder(bot, enemy)
+	local sunder = bot.ref:GetAbilityByName(SKILL_R)
+	if not CanCast(bot, sunder) then
+		return false
+	end
+
+	local bound = 40 - (sunder:GetLevel() * 5)
+
+	if bot.hp_percent < bound and GetUnitHealthPercentage(enemy) > bot.hp_percent then
+		Action_UseAbilityOnEntity(sunder, enemy)
+		return true
+	end
+
+	return false
+end
+
 local function CustomFight(bot, enemies)
-	if SummonReflection(bot) or SummonImage(bot) or Metamorphosis(bot, enemies) then
+	if Sunder(bot, enemies) or SummonReflection(bot) or SummonImage(bot) or Metamorphosis(bot, enemies) then
 		return
 	end
-	AttackUnit(bot, enemies)
+	generic_priority["fight"][2](bot, enemies)
 end
 
 priority["fight"][2] = CustomFight

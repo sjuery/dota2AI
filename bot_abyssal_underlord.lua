@@ -17,15 +17,22 @@ local buy_order = {
 	-- Vanguard
 	"item_ring_of_health",
 	"item_vitality_booster",
-	-- Blade mail
-	"item_chainmail",
-	"item_robe",
-	"item_broadsword",
+	-- Vladmir's Offering
+	"item_sobi_mask",
+	"item_ring_of_protection",
+	"item_lifesteal",
+	"item_recipe_vladmir",
+	-- Ring of Basilius
+	"item_sobi_mask",
+	"item_ring_of_protection",
 	-- Scepter
 	"item_ogre_axe",
 	"item_point_booster",
 	"item_blade_of_alacrity",
-	"item_staff_of_wizardry"
+	"item_staff_of_wizardry",
+	-- Crimson Guard
+	"item_buckler",
+	"item_recipe_crimson_guard"
 }
 
 SKILL_Q = "abyssal_underlord_firestorm"
@@ -43,10 +50,10 @@ TALENT_7 = "special_bonus_unique_underlord"
 TALENT_8 = "special_bonus_unique_underlord_4"
 
 local ability_order = {
-	SKILL_Q, SKILL_W, SKILL_Q, SKILL_E, SKILL_Q,
+	SKILL_Q, SKILL_E, SKILL_Q, SKILL_W, SKILL_Q,
 	SKILL_R, SKILL_Q, SKILL_W, SKILL_W, TALENT_1,
 	SKILL_W, SKILL_R, SKILL_E, SKILL_E, TALENT_4,
-	SKILL_E, SKILL_R, TALENT_6, TALENT_8
+	SKILL_E, SKILL_R, TALENT_5, TALENT_8
 }
 
 local bot = {
@@ -59,17 +66,17 @@ local bot = {
 
 table.insert(g, bot)
 
-local function FireStorm(bot)
+local function FireStorm(bot, enemy)
 	local fire_storm = bot.ref:GetAbilityByName(SKILL_Q)
 
-	if bot.ref:IsChanneling() or bot.ref:IsUsingAbility() or fire_storm:GetManaCost() >= bot.mp_current or not fire_storm:IsFullyCastable() then
+	if not CanCast(bot, fire_storm) then
 		return false
 	end
 
 	local aoe_heroes = bot.ref:FindAoELocation(true, true, bot.ref:GetLocation(),
 		fire_storm:GetCastRange(), 400, fire_storm:GetSpecialValueFloat("delay_plus_castpoint_tooltip"), 0)
 	local aoe_minions = bot.ref:FindAoELocation(true, false, bot.ref:GetLocation(),
-		fire_storm:GetCastRange(), 400, fire_storm:GetSpecialValueFloat("delay_plus_castpoint_tooltip"), 0)
+		fire_storm:GetCastRange(), 400, fire_storm:GetSpecialValueFloat("delay_plus_castpoint_tooltip") + 0.5, 0)
 
 	if aoe_heroes.count >= 1 and aoe_minions.count > 2 then
 		bot.ref:Action_UseAbilityOnLocation(fire_storm, aoe_heroes.targetloc)
@@ -82,13 +89,18 @@ local function FireStorm(bot)
 		return true
 	end
 
+	if enemy ~= nil and GetUnitHealthPercentage(enemy) < 0.3 and enemy:HasModifier("modifier_rooted") then
+		bot.ref:Action_UseAbilityOnLocation(pit_of_malice, enemy:GetLocation())
+		return true
+	end
+
 	return false
 end
 
-local function PitOfMalice(bot)
+local function PitOfMalice(bot, enemy)
 	local pit_of_malice = bot.ref:GetAbilityByName(SKILL_W)
 
-	if bot.ref:IsChanneling() or bot.ref:IsUsingAbility() or pit_of_malice:GetManaCost() >= bot.mp_current or not pit_of_malice:IsFullyCastable() then
+	if not CanCast(bot, pit_of_malice) then
 		return false
 	end
 
@@ -100,13 +112,27 @@ local function PitOfMalice(bot)
 		return true
 	end
 
+	if enemy ~= nil and GetUnitHealthPercentage(enemy) < 0.3 then
+		bot.ref:Action_UseAbilityOnLocation(pit_of_malice, enemy:GetLocation())
+		return true
+	end
+
 	return false
 end
 
-function Think()
-	UpdateBot(bot)
-	Thonk(bot, priority)
-	if FireStorm(bot) or PitOfMalice(bot) then
+local function CustomFight(bot, enemy)
+	if PitOfMalice(bot, enemy) or FireStorm(bot, enemy) then
 		return
 	end
+	generic_priority["fight"][2](bot, enemy)
+end
+
+priority["fight"][2] = CustomFight
+
+function Think()
+	UpdateBot(bot)
+	if PitOfMalice(bot, nil) or FireStorm(bot, nil) then
+		return
+	end
+	Thonk(bot, priority)
 end

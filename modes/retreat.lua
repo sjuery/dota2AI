@@ -64,11 +64,8 @@ function RetreatPriority(bot)
 	end
 
 	-- Low health
-	if bot.hp_percent < 0.4 then
-		if bot.hp_percent < 0.33 then
-			return 70, DotaTime() + 100
-		end
-		return 55, DotaTime() + 7
+	if bot.hp_percent < 0.33 then
+		return 60, DotaTime() + 100
 	end
 
 	-- Recently damaged

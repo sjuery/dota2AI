@@ -6,11 +6,13 @@ local enemy_modifiers = {
 	["modifier_stunned"] = 15,
 	["modifier_item_blade_mail_reflect"] = -20,
 	["modifier_bashed"] = 5,
-	["modifier_rooted"] = 10,
+	["modifier_rooted"] = 20,
 	["modifier_silence"] = 10,
 	["modifier_tower_armor_bonus"] = -20,
-	["modifier_drow_ranger_frost_arrows_slow"] = 10,
-	["modifier_orchid_malevolence_debuff"] = 25
+	["modifier_drow_ranger_frost_arrows_slow"] = 5,
+	["modifier_orchid_malevolence_debuff"] = 25,
+	["modifier_abyssal_underlord_firestorm_burn"] = 5,
+	["modifier_abaddon_borrowed_time"] = -20
 }
 
 local ally_modifers = {

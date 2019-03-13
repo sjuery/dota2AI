@@ -7,8 +7,9 @@ local priority = DeepCopy(generic_priority)
 
 local buy_order = {
 	"item_tango",
-	"item_flask",
 	"item_tango",
+	"item_flask",
+	"item_clarity",
 	-- Wraith band
 	"item_circlet",
 	"item_slippers",
@@ -17,11 +18,11 @@ local buy_order = {
 	"item_boots",
 	"item_gloves",
 	"item_boots_of_elves",
-	-- dragon lance
+	-- Dragon lance
 	"item_boots_of_elves",
 	"item_boots_of_elves",
 	"item_ogre_axe",
-	-- start satanic
+	-- Start satanic
 	"item_lifesteal",
 	-- Yasha
 	"item_boots_of_elves",
@@ -30,17 +31,17 @@ local buy_order = {
 	-- Manta Style
 	"item_ultimate_orb",
 	"item_recipe_manta",
-	-- finish satanic
+	-- Finish satanic
 	"item_reaver",
 	"item_claymore",
-	-- butterfly
+	-- Butterfly
 	"item_eagle",
 	"item_talisman_of_evasion",
 	"item_quarterstaff",
-	-- moon shard
+	-- Moon shard
 	"item_hyperstone",
 	"item_hyperstone",
-	-- eye of skadi
+	-- Eye of skadi
 	"item_ultimate_orb",
 	"item_ultimate_orb",
 	"item_point_booster"
@@ -60,6 +61,7 @@ TALENT_6 = "special_bonus_unique_luna_1"
 TALENT_7 = "special_bonus_lifesteal_25"
 TALENT_8 = "special_bonus_unique_luna_5"
 
+-- Beam build
 -- local ability_order = {
 -- 	SKILL_Q, SKILL_E, SKILL_Q, SKILL_W, SKILL_Q,
 -- 	SKILL_R, SKILL_Q, SKILL_E, SKILL_E, SKILL_E,
@@ -89,13 +91,13 @@ table.insert(g, bot)
 local function LucentBeam(bot, enemy)
 	local lucent_beam = bot.ref:GetAbilityByName(SKILL_Q)
 
-	if not lucent_beam:IsTrained() or not CanCast(bot, lucent_beam) then
+	if not CanCast(bot, lucent_beam) or lucent_beam:GetLevel() < 2 then
 		return false
 	end
 
 	local cast_range = lucent_beam:GetCastRange()
 
-	if GetUnitHealthPercentage(enemy) < 0.5 then
+	if bot.mp_current > 0.2 then
 		bot.ref:Action_UseAbilityOnEntity(lucent_beam, enemy)
 		return true
 	end
@@ -105,14 +107,11 @@ end
 local function Eclipse(bot, enemy)
 	local eclipse = bot.ref:GetAbilityByName(SKILL_R)
 
-	if not eclipse:IsTrained() or not CanCast(bot, eclipse)
-		then
+	if not CanCast(bot, eclipse) then
 		return false
-	else
-		local cast_range = eclipse:GetCastRange()
 	end
 
-	if GetUnitHealthPercentage(enemy) < 0.7 then
+	if GetUnitHealthPercentage(enemy) < 0.5 and GetUnitToUnitDistance(bot.ref, enemy) < 550 then
 		bot.ref:Action_UseAbility(eclipse)
 		return true
 	end

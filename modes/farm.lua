@@ -63,6 +63,13 @@ function Farm(bot, creep)
 		end
 	end
 
+	if bot.ref:WasRecentlyDamagedByAnyHero(1.0) then
+		local enemy_heroes = bot.ref:GetNearbyHeroes(1600, true, BOT_MODE_NONE)
+		local away = Normalize(bot.location - enemy_heroes[1]:GetLocation())
+		bot.ref:Action_MoveToLocation(bot.location + away * 10)
+		return
+	end
+
 	if creep == nil then
 		bot.dest = dest
 		bot.ref:Action_MoveToLocation(dest)

@@ -9,12 +9,12 @@ local hero_names = {
 local picked_pool = {}
 
 local pick_pool = {
-	"npc_dota_hero_luna",
 	"npc_dota_hero_drow_ranger",
 	"npc_dota_hero_abyssal_underlord",
 	"npc_dota_hero_furion", -- Natures prophet
 	"npc_dota_hero_omniknight",
-	"npc_dota_hero_terrorblade",
+--	"npc_dota_hero_terrorblade",
+	"npc_dota_hero_luna",
 	"npc_dota_hero_sven",
 	"npc_dota_hero_axe"
 }

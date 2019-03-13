@@ -28,9 +28,9 @@ local buy_order = {
 	"item_mithril_hammer",
 	"item_mithril_hammer",
 	-- Assault Cuirass
-	"item_hyperstone",
 	"item_chainmail",
 	"item_platemail",
+	"item_hyperstone",
 	"item_recipe_assault",
 	-- Moonstone
 	"item_hyperstone",
@@ -71,7 +71,7 @@ table.insert(g, bot)
 local function SpawnTrees(bot, enemy)
 	local summon_trees = bot.ref:GetAbilityByName(SKILL_Q)
 
-	if not summon_trees:IsTrained() or not CanCast(bot, summon_trees) then
+	if not CanCast(bot, summon_trees) then
 		return false
 	end
 
@@ -89,7 +89,7 @@ local function SummonTreants(bot)
 	local trees = bot.ref:GetNearbyTrees(1200)
 	local summon_treants = bot.ref:GetAbilityByName(SKILL_E)
 
-	if not summon_treants:IsTrained() or #trees == 0 or not CanCast(bot, summon_treants) then
+	if not CanCast(bot, summon_treants) then
 		return false
 	end
 
@@ -144,7 +144,7 @@ end
 local function NaturesWrath(bot, enemy)
 	local natures_wrath = bot.ref:GetAbilityByName(SKILL_R)
 
-	if not natures_wrath:IsTrained() or not CanCast(bot, natures_wrath) or GetUnitToUnitDistance(bot.ref, enemy) > 700 then
+	if not CanCast(bot, natures_wrath) or GetUnitToUnitDistance(bot.ref, enemy) > 700 then
 		return false
 	end
 
@@ -174,7 +174,7 @@ local function CustomFight(bot, enemies)
 	if UseOrchid(bot, enemies) or NaturesWrath(bot, enemies) or SpawnTrees(bot, enemies) or SummonTreants(bot) then
 		return
 	end
-	AttackUnit(bot, enemies)
+	generic_priority["fight"][2](bot, enemies)
 end
 
 priority["fight"][2] = CustomFight
