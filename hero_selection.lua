@@ -35,7 +35,7 @@ local ban_pool = {
 }
 
 function Think()
-	if (GetGameState() ~= GAME_STATE_HERO_SELECTION) then
+	if (GetGameState() ~= GAME_STATE_HERO_SELECTION) or GetCMPhaseTimeRemaining() > 25 then
 		return
 	end
 
