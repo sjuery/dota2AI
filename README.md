@@ -40,5 +40,5 @@ And begin.
 ## Authors
 
 * **Stanislas Juery** - (https://github.com/sjuery)
-* **Logan Kaser** - (https://github.com/lkaser)
+* **Logan Kaser** - (https://github.com/logankaser)
 * **Eliot vanHeumen** - (https://github.com/eliotv)
