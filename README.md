@@ -20,15 +20,18 @@ Just a bot we decided to build for fun. The main idea of the bot was to go with 
 
 Install Dota 2
 Head over to:
+
 '/c/Program Files (x86)/Steam/steamapps/common/dota 2 beta/game/dota/scripts/vscripts' on windows
+
 '~/.steam/steam/steamapps/common/dota 2 beta/game/dota/scripts/vscripts' on linux/mac
+
 And clone the repo making sure to call it 'bots'
 
 ## Running the bots
 
 In steam go right click dota 2 and select properties.
 Press launch options and type in -console.
-This will allow you to access the console using '\'
+This will allow you to access the console using "\\"
 All console commands can be found [here](https://dota2.gamepedia.com/List_of_Console_Commands)
 Launch dota.
 Create a custom lobby and advanced settings.
